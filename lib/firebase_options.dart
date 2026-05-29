@@ -41,7 +41,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBXuj-nZgMn5GPRykX2aWN5DaFg66FiHbU',
+    apiKey: 'AIzaSyCN3FKlferzd_jA4n7dRRyNm5F0ty9s4fs',
     appId: '1:497229688858:web:ea6d98385460a190fba1a3',
     messagingSenderId: '497229688858',
     projectId: 'finance-app-85342',
@@ -50,8 +50,8 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDJgPfBaBnjtrosEx-c182Dh395NllJrpg',
-    appId: '1:497229688858:android:b9162ffc8388fefdfba1a3',
+    apiKey: 'AIzaSyCrGUSAW-430FbdfiM2hjfsKoU-KjMfUYc',
+    appId: '1:497229688858:android:3b897549c30c8c98fba1a3',
     messagingSenderId: '497229688858',
     projectId: 'finance-app-85342',
     storageBucket: 'finance-app-85342.firebasestorage.app',
@@ -76,7 +76,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBXuj-nZgMn5GPRykX2aWN5DaFg66FiHbU',
+    apiKey: 'AIzaSyCN3FKlferzd_jA4n7dRRyNm5F0ty9s4fs',
     appId: '1:497229688858:web:0a5b994c3da0e3d8fba1a3',
     messagingSenderId: '497229688858',
     projectId: 'finance-app-85342',

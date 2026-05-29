@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'screens/auth/auth.dart';
+import 'screens/auth/verify_email.dart';
 import 'screens/splash.dart';
 
 final _firebase = FirebaseAuth.instance;
@@ -32,29 +33,35 @@ class App extends StatelessWidget {
       title: 'Finance App',
       theme: .new(fontFamily: 'Poppins', colorScheme: kColorScheme),
       home: StreamBuilder(
-        stream: _firebase.authStateChanges(),
+        stream: _firebase.userChanges(),
         builder: (ctx, asyncSnapshot) {
           if (asyncSnapshot.connectionState == .waiting) {
             return const SplashScreen();
           }
 
-          if (asyncSnapshot.hasData) {
-            return Scaffold(
-              appBar: AppBar(
-                title: const Text('Welcome'),
-                actions: [
-                  IconButton(
-                    onPressed: () {
-                      _firebase.signOut();
-                    },
-                    icon: Icon(Icons.exit_to_app, color: kColorScheme.primary),
-                  ),
-                ],
-              ),
-            );
+          final user = asyncSnapshot.data;
+
+          if (user == null) {
+            return const AuthScreen();
           }
 
-          return const AuthScreen();
+          if (!user.emailVerified) {
+            return VerifyEmail(email: user.email ?? '');
+          }
+
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Welcome'),
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    _firebase.signOut();
+                  },
+                  icon: Icon(Icons.exit_to_app, color: kColorScheme.primary),
+                ),
+              ],
+            ),
+          );
         },
       ),
     );

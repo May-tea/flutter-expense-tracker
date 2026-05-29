@@ -71,7 +71,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
 
     try {
       if (_isLogin) {
-        final userCredentials = await _firebase.signInWithEmailAndPassword(
+        await _firebase.signInWithEmailAndPassword(
           email: email,
           password: password,
         );
@@ -81,16 +81,21 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
           password: password,
         );
 
-        await _firestore.collection('users').doc(userCredentials.user!.uid).set(
-          {'username': username, 'email': email, 'createdAt': Timestamp.now()},
-        );
+        final user = userCredentials.user!;
 
-        await userCredentials.user!.updateDisplayName(username);
-        await userCredentials.user!.reload();
+        await user.updateDisplayName(username);
 
-        print(_firebase.currentUser!.displayName);
+        await user.sendEmailVerification();
+
+        await _firestore.collection('users').doc(user.uid).set({
+          'username': username,
+          'email': email,
+          'isVerified': false,
+          'createdAt': Timestamp.now(),
+        });
       }
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       final message = AuthException.authErrorMessage(e.code);
       AuthSnackBar.show(context, isError: true, message: message);
     } finally {
