@@ -35,12 +35,14 @@ abstract class AuthSnackBar {
               isError ? Icons.error_outline : Icons.check_circle_outline,
               color: isError ? colorScheme.onError : colorScheme.onPrimary,
             ),
-            Text(
-              message,
-              style: .new(
-                color: isError ? colorScheme.onError : colorScheme.onPrimary,
-                fontWeight: .bold,
-                fontSize: screenWidth * 0.034,
+            Expanded(
+              child: Text(
+                message,
+                style: .new(
+                  color: isError ? colorScheme.onError : colorScheme.onPrimary,
+                  fontWeight: .bold,
+                  fontSize: screenWidth * 0.034,
+                ),
               ),
             ),
           ],
