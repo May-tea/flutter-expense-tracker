@@ -31,6 +31,30 @@ class _VerifyEmailState extends State<VerifyEmail> {
 
     Future.microtask(() async {
       await _firebase.currentUser?.reload();
+
+      final user = _firebase.currentUser;
+
+      if (user == null) return;
+
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+
+      final timestamp =
+          doc.data()?['lastVerificationEmailSentAt'] as Timestamp?;
+
+      if (timestamp == null) return;
+
+      final sentAt = timestamp.toDate();
+
+      final elapsedSeconds = DateTime.now().difference(sentAt).inSeconds;
+
+      final remaining = 60 - elapsedSeconds;
+
+      if (!mounted) return;
+      if (remaining > 0) {
+        setState(() => _resendCooldown = remaining);
+
+        _startResendCooldown(remaining);
+      }
     });
   }
 
@@ -40,13 +64,15 @@ class _VerifyEmailState extends State<VerifyEmail> {
     super.dispose();
   }
 
-  void _startResendCooldown() {
-    _resendCooldown = 60;
+  void _startResendCooldown([int? seconds]) {
+    if (seconds != null) {
+      _resendCooldown = seconds;
+    }
 
     _timer?.cancel();
 
-    _timer = .periodic(const .new(milliseconds: 1000), (timer) {
-      if (_resendCooldown == 0) {
+    _timer = .periodic(const .new(seconds: 1), (timer) {
+      if (_resendCooldown <= 0) {
         timer.cancel();
       } else {
         setState(() => _resendCooldown--);
@@ -63,16 +89,16 @@ class _VerifyEmailState extends State<VerifyEmail> {
       final updatedUser = _firebase.currentUser;
 
       if (updatedUser != null && updatedUser.emailVerified) {
-        await _firestore.collection('users').doc(updatedUser.uid).update({
-          'isVerified': true,
-        });
-
         if (!mounted) return;
         AuthSnackBar.show(
           context,
           isError: false,
           message: 'Email verified successfully',
         );
+
+        await _firestore.collection('users').doc(updatedUser.uid).update({
+          'isVerified': true,
+        });
       } else {
         if (!mounted) return;
         AuthSnackBar.show(
@@ -100,7 +126,11 @@ class _VerifyEmailState extends State<VerifyEmail> {
 
       await user.sendEmailVerification();
 
-      _startResendCooldown();
+      await _firestore.collection('users').doc(user.uid).update({
+        'lastVerificationEmailSentAt': Timestamp.now(),
+      });
+
+      _startResendCooldown(60);
 
       if (!mounted) return;
       AuthSnackBar.show(
@@ -125,10 +155,6 @@ class _VerifyEmailState extends State<VerifyEmail> {
 
   Future<void> _signOut() async {
     await _firebase.signOut();
-
-    if (!mounted) return;
-
-    Navigator.of(context).pop();
   }
 
   @override

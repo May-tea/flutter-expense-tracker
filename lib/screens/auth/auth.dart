@@ -92,6 +92,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
           'email': email,
           'isVerified': false,
           'createdAt': Timestamp.now(),
+          'lastVerificationEmailSentAt': Timestamp.now(),
         });
       }
     } on FirebaseAuthException catch (e) {
