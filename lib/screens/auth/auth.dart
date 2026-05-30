@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../utils/screen_utils.dart';
 import 'widgets/auth_exception.dart';
@@ -18,7 +21,7 @@ class AuthScreen extends StatefulWidget {
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
+class _AuthScreenState extends State<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _usernameController = TextEditingController();
@@ -26,12 +29,44 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   AutovalidateMode _autoValidateMode = .disabled;
   bool _isLogin = true;
   bool _isAuthenticating = false;
+  int _resetPasswordCooldown = 0;
+  Timer? _resetPasswordTimer;
+  static const _resetPasswordKey = 'last_password_reset_sent_at';
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() async {
+      final prefs = await SharedPreferences.getInstance();
+
+      final savedMillis = prefs.getInt(_resetPasswordKey);
+
+      if (savedMillis == null) return;
+
+      final sentAt = DateTime.fromMillisecondsSinceEpoch(savedMillis);
+
+      final elapsed = DateTime.now().difference(sentAt).inSeconds;
+
+      final remaining = 60 - elapsed;
+
+      if (!mounted) return;
+      if (remaining > 0) {
+        setState(() => _resetPasswordCooldown = remaining);
+
+        _startResetPasswordCooldown(remaining);
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _resetPasswordTimer?.cancel();
+
     _emailController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
+
     super.dispose();
   }
 
@@ -46,6 +81,22 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
       _emailController.clear();
       _usernameController.clear();
       _passwordController.clear();
+    });
+  }
+
+  void _startResetPasswordCooldown([int? seconds]) {
+    if (seconds != null) {
+      _resetPasswordCooldown = seconds;
+    }
+
+    _resetPasswordTimer?.cancel();
+
+    _resetPasswordTimer = .periodic(const .new(seconds: 1), (timer) {
+      if (_resetPasswordCooldown <= 0) {
+        timer.cancel();
+      } else {
+        setState(() => _resetPasswordCooldown--);
+      }
     });
   }
 
@@ -118,6 +169,17 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
 
     try {
       await _firebase.sendPasswordResetEmail(email: email);
+
+      final prefs = await SharedPreferences.getInstance();
+
+      await prefs.setInt(
+        _resetPasswordKey,
+        DateTime.now().millisecondsSinceEpoch,
+      );
+
+      setState(() => _resetPasswordCooldown = 60);
+
+      _startResetPasswordCooldown();
 
       if (!mounted) return;
       AuthSnackBar.show(
@@ -248,9 +310,15 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                           mainAxisAlignment: .end,
                           children: [
                             GestureDetector(
-                              onTap: _isAuthenticating ? null : _resetPassword,
+                              onTap:
+                                  (_isAuthenticating ||
+                                      _resetPasswordCooldown > 0)
+                                  ? null
+                                  : _resetPassword,
                               child: Text(
-                                'Forgot Password?',
+                                _resetPasswordCooldown > 0
+                                    ? 'Reset in $_resetPasswordCooldown s'
+                                    : 'Forgot Password?',
                                 style: .new(
                                   decoration: .underline,
                                   decorationColor: colorScheme.primary,
