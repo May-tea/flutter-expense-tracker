@@ -1,10 +1,24 @@
 # Expense Tracker
 
-Scalable Flutter expense tracker powered by Firebase, including secure login/signup, email verification, password recovery, Firestore user profiles, custom validation, persistent sessions, and polished animated UI.
+A Flutter expense tracker powered by Firebase Authentication and Cloud Firestore, featuring secure authentication, email verification, password recovery, user profile management, custom validation, persistent sessions, and a responsive Material 3 UI.
 
 ## Features
-- Login / Register
-- Password Reset
-- Email Verification
-- Firebase Auth
-- Firestore
+
+- Secure Login & Registration with Firebase Authentication
+- Email Verification Workflow
+- Password Reset via Email
+- Persistent Authentication Sessions
+- Cloud Firestore User Profiles
+- Account Creation Timestamp Tracking
+- Custom Form Validation
+- Verification Email Resend Cooldown
+- Persistent Password Reset Cooldown
+- Responsive Layout for Different Screen Sizes
+- Material 3 UI Design
+
+## Tech Stack
+
+- Flutter
+- Firebase Authentication
+- Cloud Firestore
+- SharedPreferences
