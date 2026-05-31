@@ -1,14 +1,14 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/utils/screen_utils.dart';
-import 'widgets/auth_snack_bar.dart';
-
-final _firebase = FirebaseAuth.instance;
-final _firestore = FirebaseFirestore.instance;
+import '../../../../core/utils/screen_utils.dart';
+import '../../../core/constants/auth_constants.dart';
+import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_snack_bar.dart';
+import '../services/auth_service.dart';
+import '../services/user_service.dart';
 
 class VerifyEmail extends StatefulWidget {
   const VerifyEmail({super.key, required this.email});
@@ -20,8 +20,15 @@ class VerifyEmail extends StatefulWidget {
 }
 
 class _VerifyEmailState extends State<VerifyEmail> {
+  // Services
+  final AuthService _authService = .instance;
+  final UserService _userService = .instance;
+
+  // UI State
   bool _isChecking = false;
   bool _isResending = false;
+
+  // Cooldown
   int _resendCooldown = 0;
   Timer? _timer;
 
@@ -29,39 +36,64 @@ class _VerifyEmailState extends State<VerifyEmail> {
   void initState() {
     super.initState();
 
-    Future.microtask(() async {
-      await _firebase.currentUser?.reload();
-
-      final user = _firebase.currentUser;
-
-      if (user == null) return;
-
-      final doc = await _firestore.collection('users').doc(user.uid).get();
-
-      final timestamp =
-          doc.data()?['lastVerificationEmailSentAt'] as Timestamp?;
-
-      if (timestamp == null) return;
-
-      final sentAt = timestamp.toDate();
-
-      final elapsedSeconds = DateTime.now().difference(sentAt).inSeconds;
-
-      final remaining = 60 - elapsedSeconds;
-
-      if (!mounted) return;
-      if (remaining > 0) {
-        setState(() => _resendCooldown = remaining);
-
-        _startResendCooldown(remaining);
-      }
-    });
+    _loadCooldown();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+
     super.dispose();
+  }
+
+  Future<void> _loadCooldown() async {
+    final remaining = await _userService.getVerificationEmailCooldown();
+
+    if (!mounted) return;
+
+    if (remaining > 0) {
+      setState(() => _resendCooldown = remaining);
+
+      _startResendCooldown(remaining);
+    }
+  }
+
+  Future<void> _checkVerification() async {
+    setState(() => _isChecking = true);
+
+    try {
+      final isVerified = await _authService.isEmailVerified();
+
+      if (isVerified) {
+        if (!mounted) return;
+
+        AppSnackBar.show(
+          context,
+          isError: false,
+          message: 'Email verified successfully',
+        );
+
+        await _userService.markUserAsVerified();
+      } else {
+        if (!mounted) return;
+
+        AppSnackBar.show(
+          context,
+          isError: true,
+          message: 'Your email is not verified yet.',
+        );
+      }
+    } on FirebaseException catch (_) {
+      if (!mounted) return;
+
+      AppSnackBar.show(
+        context,
+        isError: true,
+        message: 'Something went wrong.',
+      );
+    } finally {
+      if (mounted) setState(() => _isChecking = false);
+    }
   }
 
   void _startResendCooldown([int? seconds]) {
@@ -80,60 +112,19 @@ class _VerifyEmailState extends State<VerifyEmail> {
     });
   }
 
-  Future<void> _checkVerification() async {
-    setState(() => _isChecking = true);
-
-    try {
-      await _firebase.currentUser?.reload();
-
-      final updatedUser = _firebase.currentUser;
-
-      if (updatedUser != null && updatedUser.emailVerified) {
-        if (!mounted) return;
-        AuthSnackBar.show(
-          context,
-          isError: false,
-          message: 'Email verified successfully',
-        );
-
-        await _firestore.collection('users').doc(updatedUser.uid).update({
-          'isVerified': true,
-        });
-      } else {
-        if (!mounted) return;
-        AuthSnackBar.show(
-          context,
-          isError: true,
-          message: 'Your email is not verified yet.',
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isChecking = false);
-      }
-    }
-  }
-
   Future<void> _resendEmail() async {
     if (_resendCooldown > 0) return;
 
     setState(() => _isResending = true);
 
     try {
-      final user = _firebase.currentUser;
+      await _authService.resendVerificationEmail();
 
-      if (user == null) return;
-
-      await user.sendEmailVerification();
-
-      await _firestore.collection('users').doc(user.uid).update({
-        'lastVerificationEmailSentAt': Timestamp.now(),
-      });
-
-      _startResendCooldown(60);
+      _startResendCooldown(AuthConstants.verificationCooldownSeconds);
 
       if (!mounted) return;
-      AuthSnackBar.show(
+
+      AppSnackBar.show(
         context,
         isError: false,
         message: 'Verification email sent again.',
@@ -147,19 +138,19 @@ class _VerifyEmailState extends State<VerifyEmail> {
         message = 'Please wait before requesting another email';
       }
 
-      AuthSnackBar.show(context, isError: true, message: message);
+      AppSnackBar.show(context, isError: true, message: message);
     } finally {
-      setState(() => _isResending = false);
+      if (mounted) setState(() => _isResending = false);
     }
   }
 
   Future<void> _signOut() async {
-    await _firebase.signOut();
+    await _authService.signOut();
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = ScreenUtils.width(context); // 411px
+    final screenWidth = ScreenUtils.width(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -199,30 +190,12 @@ class _VerifyEmailState extends State<VerifyEmail> {
                 style: .new(fontSize: screenWidth * 0.042),
               ),
               SizedBox(height: screenWidth * 0.073),
-              ElevatedButton(
-                onPressed: () {
-                  if (_isResending || _resendCooldown > 0) return;
-                  _resendEmail();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  minimumSize: .fromHeight(screenWidth * 0.12),
-                ),
-                child: _isResending
-                    ? SizedBox(
-                        width: screenWidth * 0.049,
-                        height: screenWidth * 0.049,
-                        child: CircularProgressIndicator(
-                          strokeWidth: screenWidth * 0.006,
-                          color: colorScheme.onPrimary,
-                        ),
-                      )
-                    : Text(
-                        _resendCooldown > 0
-                            ? 'Resend in $_resendCooldown s'
-                            : 'Resend Email',
-                        style: .new(color: colorScheme.onPrimary),
-                      ),
+              AppButton(
+                label: _resendCooldown > 0
+                    ? 'Resend in $_resendCooldown s'
+                    : 'Resend Email',
+                isLoading: _isResending,
+                onPressed: _resendEmail,
               ),
               SizedBox(height: screenWidth * 0.03),
               TextButton(

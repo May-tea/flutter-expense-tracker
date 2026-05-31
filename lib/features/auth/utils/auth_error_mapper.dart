@@ -1,5 +1,5 @@
-abstract class AuthException {
-  static String authErrorMessage(String code) {
+abstract final class AuthErrorMapper {
+  static String message(String code) {
     switch (code) {
       case 'email-already-in-use':
         return 'This email is already registered.';

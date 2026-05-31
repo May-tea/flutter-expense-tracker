@@ -1,18 +1,18 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../core/utils/screen_utils.dart';
-import 'widgets/auth_exception.dart';
-import 'widgets/auth_snack_bar.dart';
-import 'widgets/auth_text_form_field.dart';
-
-final _firebase = FirebaseAuth.instance;
-final _firestore = FirebaseFirestore.instance;
+import '../../../../core/utils/screen_utils.dart';
+import '../../../core/constants/auth_constants.dart';
+import '../../../core/validators/app_validators.dart';
+import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_snack_bar.dart';
+import '../../../core/widgets/app_text_form_field.dart';
+import '../services/auth_service.dart';
+import '../utils/auth_error_mapper.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -22,16 +22,25 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  // Auth Service
+  final AuthService _authService = .instance;
+
+  // Form
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  // Controllers
+  final TextEditingController _emailController = .new();
+  final TextEditingController _usernameController = .new();
+  final TextEditingController _passwordController = .new();
+
+  // UI State
   AutovalidateMode _autoValidateMode = .disabled;
   bool _isLogin = true;
   bool _isAuthenticating = false;
+
+  // Cooldown
   int _resetPasswordCooldown = 0;
   Timer? _resetPasswordTimer;
-  static const _resetPasswordKey = 'last_password_reset_sent_at';
 
   @override
   void initState() {
@@ -40,7 +49,7 @@ class _AuthScreenState extends State<AuthScreen> {
     Future.microtask(() async {
       final prefs = await SharedPreferences.getInstance();
 
-      final savedMillis = prefs.getInt(_resetPasswordKey);
+      final savedMillis = prefs.getInt(AuthConstants.resetPasswordKey);
 
       if (savedMillis == null) return;
 
@@ -51,6 +60,7 @@ class _AuthScreenState extends State<AuthScreen> {
       final remaining = 60 - elapsed;
 
       if (!mounted) return;
+
       if (remaining > 0) {
         setState(() => _resetPasswordCooldown = remaining);
 
@@ -68,36 +78,6 @@ class _AuthScreenState extends State<AuthScreen> {
     _passwordController.dispose();
 
     super.dispose();
-  }
-
-  void _toggleAuthMode() {
-    FocusScope.of(context).unfocus();
-    _formKey.currentState?.reset();
-
-    setState(() {
-      _isLogin = !_isLogin;
-      _autoValidateMode = .disabled;
-
-      _emailController.clear();
-      _usernameController.clear();
-      _passwordController.clear();
-    });
-  }
-
-  void _startResetPasswordCooldown([int? seconds]) {
-    if (seconds != null) {
-      _resetPasswordCooldown = seconds;
-    }
-
-    _resetPasswordTimer?.cancel();
-
-    _resetPasswordTimer = .periodic(const .new(seconds: 1), (timer) {
-      if (_resetPasswordCooldown <= 0) {
-        timer.cancel();
-      } else {
-        setState(() => _resetPasswordCooldown--);
-      }
-    });
   }
 
   Future<void> _submit() async {
@@ -122,44 +102,46 @@ class _AuthScreenState extends State<AuthScreen> {
 
     try {
       if (_isLogin) {
-        await _firebase.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
+        await _authService.signIn(email: email, password: password);
       } else {
-        final userCredentials = await _firebase.createUserWithEmailAndPassword(
+        await _authService.signUp(
           email: email,
           password: password,
+          username: username,
         );
-
-        final user = userCredentials.user!;
-
-        await user.updateDisplayName(username);
-
-        await user.sendEmailVerification();
-
-        await _firestore.collection('users').doc(user.uid).set({
-          'username': username,
-          'email': email,
-          'isVerified': false,
-          'createdAt': Timestamp.now(),
-          'lastVerificationEmailSentAt': Timestamp.now(),
-        });
       }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      final message = AuthException.authErrorMessage(e.code);
-      AuthSnackBar.show(context, isError: true, message: message);
+
+      final message = AuthErrorMapper.message(e.code);
+
+      AppSnackBar.show(context, isError: true, message: message);
     } finally {
       if (mounted) setState(() => _isAuthenticating = false);
     }
+  }
+
+  void _startResetPasswordCooldown([int? seconds]) {
+    if (seconds != null) {
+      _resetPasswordCooldown = seconds;
+    }
+
+    _resetPasswordTimer?.cancel();
+
+    _resetPasswordTimer = .periodic(const .new(seconds: 1), (timer) {
+      if (_resetPasswordCooldown <= 0) {
+        timer.cancel();
+      } else {
+        setState(() => _resetPasswordCooldown--);
+      }
+    });
   }
 
   Future<void> _resetPassword() async {
     final email = _emailController.text.trim();
 
     if (email.isEmpty) {
-      AuthSnackBar.show(
+      AppSnackBar.show(
         context,
         isError: true,
         message: 'Please enter your email first.',
@@ -168,12 +150,12 @@ class _AuthScreenState extends State<AuthScreen> {
     }
 
     try {
-      await _firebase.sendPasswordResetEmail(email: email);
+      await _authService.resetPassword(email: email);
 
       final prefs = await SharedPreferences.getInstance();
 
       await prefs.setInt(
-        _resetPasswordKey,
+        AuthConstants.resetPasswordKey,
         DateTime.now().millisecondsSinceEpoch,
       );
 
@@ -182,27 +164,48 @@ class _AuthScreenState extends State<AuthScreen> {
       _startResetPasswordCooldown();
 
       if (!mounted) return;
-      AuthSnackBar.show(
+
+      AppSnackBar.show(
         context,
         isError: false,
         message:
             'If an account exists for this email, a reset link has been sent.',
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      AppSnackBar.show(
+        context,
+        isError: true,
+        message: AuthErrorMapper.message(e.code),
       );
     } catch (_) {
       if (!mounted) return;
-      AuthSnackBar.show(
-        context,
-        isError: false,
-        message:
-            'If an account exists for this email, a reset link has been sent.',
-      );
+
+      AppSnackBar.show(context, isError: true, message: 'Something went wrong');
     }
+  }
+
+  void _toggleAuthMode() {
+    if (_isAuthenticating) return;
+
+    FocusScope.of(context).unfocus();
+
+    _formKey.currentState?.reset();
+
+    setState(() {
+      _isLogin = !_isLogin;
+      _autoValidateMode = .disabled;
+
+      _emailController.clear();
+      _usernameController.clear();
+      _passwordController.clear();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = ScreenUtils.width(context); // 411px
-    final screenHeight = ScreenUtils.height(context); // 923px
+    final screenWidth = ScreenUtils.width(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -215,7 +218,7 @@ class _AuthScreenState extends State<AuthScreen> {
             mainAxisSize: .min,
             children: [
               Text(
-                _isLogin ? 'Sign in' : 'Create Account',
+                _isLogin ? AuthConstants.signIn : 'Create Account',
                 style: .new(fontSize: screenWidth * 0.06, fontWeight: .bold),
               ),
               Text.rich(
@@ -226,7 +229,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   style: .new(fontSize: screenWidth * 0.035),
                   children: [
                     TextSpan(
-                      text: _isLogin ? 'Create now' : 'Sign in',
+                      text: _isLogin ? 'Create now' : AuthConstants.signIn,
                       style: .new(
                         decoration: .underline,
                         decorationColor: colorScheme.primary,
@@ -247,63 +250,33 @@ class _AuthScreenState extends State<AuthScreen> {
                   child: Column(
                     spacing: screenWidth * 0.058,
                     children: [
-                      AuthTextFormField(
-                        formKey: 'Email',
+                      AppTextFormField(
+                        label: 'Email',
                         controller: _emailController,
-                        textCapitalization: .none,
-                        autofillHints: const [AutofillHints.email],
                         keyboardType: .emailAddress,
-                        validator: (value) {
-                          final email = value?.trim() ?? '';
-
-                          if (email.isEmpty) {
-                            return 'Email is required.';
-                          }
-
-                          final regex = RegExp(
-                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                          );
-
-                          if (!regex.hasMatch(email)) {
-                            return 'Enter a valid email address.';
-                          }
-
-                          return null;
-                        },
+                        autofillHints: const [AutofillHints.email],
+                        validator: AppValidators.email,
                       ),
                       AnimatedSize(
                         duration: const .new(milliseconds: 300),
                         curve: Curves.easeOut,
                         child: _isLogin
                             ? const SizedBox()
-                            : AuthTextFormField(
-                                formKey: 'Username',
+                            : AppTextFormField(
+                                label: 'Username',
                                 controller: _usernameController,
-                                textCapitalization: .sentences,
-                                autofillHints: const [AutofillHints.username],
                                 keyboardType: .name,
-                                validator: (value) {
-                                  if (value == null ||
-                                      value.trim().length < 4) {
-                                    return 'Please enter at least 4 characters.';
-                                  }
-                                  return null;
-                                },
+                                autofillHints: const [AutofillHints.username],
+                                textCapitalization: .sentences,
+                                validator: AppValidators.username,
                               ),
                       ),
-                      AuthTextFormField(
-                        formKey: 'Password',
+                      AppTextFormField(
+                        label: 'Password',
                         controller: _passwordController,
-                        textCapitalization: .sentences,
-                        autofillHints: const [AutofillHints.password],
-                        keyboardType: .name,
                         isPasswordFormField: true,
-                        validator: (value) {
-                          if (value == null || value.trim().length < 6) {
-                            return 'Password must be at least 6 characters long.';
-                          }
-                          return null;
-                        },
+                        autofillHints: const [AutofillHints.password],
+                        validator: AppValidators.password,
                       ),
                       if (_isLogin)
                         Row(
@@ -333,28 +306,10 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  if (_isAuthenticating) return;
-                  _submit();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  minimumSize: .fromHeight(screenWidth * 0.12),
-                ),
-                child: _isAuthenticating
-                    ? SizedBox(
-                        width: screenWidth * 0.049,
-                        height: screenWidth * 0.049,
-                        child: CircularProgressIndicator(
-                          strokeWidth: screenWidth * 0.006,
-                          color: colorScheme.onPrimary,
-                        ),
-                      )
-                    : Text(
-                        _isLogin ? 'Sign in' : 'Sign up',
-                        style: .new(color: colorScheme.onPrimary),
-                      ),
+              AppButton(
+                label: _isLogin ? AuthConstants.signIn : 'Sign up',
+                isLoading: _isAuthenticating,
+                onPressed: _submit,
               ),
             ],
           ),

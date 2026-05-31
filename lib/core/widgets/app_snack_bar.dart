@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/utils/screen_utils.dart';
+import '../../../../core/utils/screen_utils.dart';
 
-abstract class AuthSnackBar {
+abstract final class AppSnackBar {
   static void show(
     BuildContext context, {
     required bool isError,
     required String message,
   }) {
-    final screenWidth = ScreenUtils.width(context); // 411px
+    final screenWidth = ScreenUtils.width(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     ScaffoldMessenger.of(context).clearSnackBars();
