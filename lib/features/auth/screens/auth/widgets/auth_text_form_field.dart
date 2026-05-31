@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../utils/screen_utils.dart';
+import '../../../core/utils/screen_utils.dart';
 
 class AuthTextFormField extends StatefulWidget {
   const AuthTextFormField({

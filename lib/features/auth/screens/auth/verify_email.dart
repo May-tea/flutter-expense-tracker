@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../utils/screen_utils.dart';
+import '../../core/utils/screen_utils.dart';
 import 'widgets/auth_snack_bar.dart';
 
 final _firebase = FirebaseAuth.instance;

@@ -6,7 +6,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../utils/screen_utils.dart';
+import '../../core/utils/screen_utils.dart';
 import 'widgets/auth_exception.dart';
 import 'widgets/auth_snack_bar.dart';
 import 'widgets/auth_text_form_field.dart';
