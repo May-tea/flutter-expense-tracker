@@ -22,23 +22,18 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  // Auth Service
   final AuthService _authService = .instance;
 
-  // Form
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
 
-  // Controllers
   final TextEditingController _emailController = .new();
   final TextEditingController _usernameController = .new();
   final TextEditingController _passwordController = .new();
 
-  // UI State
   AutovalidateMode _autoValidateMode = .disabled;
   bool _isLogin = true;
   bool _isAuthenticating = false;
 
-  // Cooldown
   int _resetPasswordCooldown = 0;
   Timer? _resetPasswordTimer;
 
@@ -307,7 +302,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
               ),
               AppButton(
-                label: _isLogin ? AuthConstants.signIn : 'Sign up',
+                label: _isLogin ? AuthConstants.signIn : 'Sign Up',
                 isLoading: _isAuthenticating,
                 onPressed: _submit,
               ),

@@ -8,7 +8,7 @@ import '../models/user_model.dart';
 class UserService {
   UserService._();
 
-  static final UserService instance = UserService._();
+  static final UserService instance = ._();
 
   final FirebaseFirestore _firestore = .instance;
   final FirebaseAuth _firebase = .instance;

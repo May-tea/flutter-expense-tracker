@@ -9,7 +9,7 @@ import 'user_service.dart';
 class AuthService {
   AuthService._();
 
-  static final AuthService instance = AuthService._();
+  static final AuthService instance = ._();
 
   final FirebaseAuth _firebase = .instance;
   final FirebaseFirestore _firestore = .instance;

@@ -1,28 +1,23 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../home/screens/home_screen.dart';
+import '../../expenses/screens/home_screen.dart';
 import '../../splash/splash_screen.dart';
-import '../services/auth_service.dart';
+import '../providers/auth_provider.dart';
 import 'auth_screen.dart';
 import 'verify_email_screen.dart';
 
-final AuthService _authService = .instance;
-
-class AuthGate extends StatelessWidget {
+class AuthGate extends ConsumerWidget {
   const AuthGate({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: _authService.authStateChanges(),
-      builder: (ctx, asyncSnapshot) {
-        if (asyncSnapshot.connectionState == .waiting) {
-          return const SplashScreen();
-        }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
 
-        final user = asyncSnapshot.data;
-
+    return authState.when(
+      loading: () => const SplashScreen(),
+      error: (_, _) => const AuthScreen(),
+      data: (user) {
         if (user == null) {
           return const AuthScreen();
         }
