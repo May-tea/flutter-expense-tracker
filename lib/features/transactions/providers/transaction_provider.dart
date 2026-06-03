@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/transaction_model.dart';
+import '../models/transaction_type.dart';
 import '../services/transaction_service.dart';
 
 final transactionServiceProvider = Provider<TransactionService>(
@@ -11,36 +12,29 @@ final transactionsProvider = StreamProvider<List<TransactionModel>>(
   (ref) => ref.watch(transactionServiceProvider).getTransactions(),
 );
 
-final totalIncomeProvider = Provider<double>((ref) {
-  final transactionsAsync = ref.watch(transactionsProvider);
+final transactionsByTypeProvider =
+    Provider.family<List<TransactionModel>, TransactionType>((ref, type) {
+      return ref
+          .watch(transactionsProvider)
+          .maybeWhen(
+            data: (transactions) =>
+                transactions.where((t) => t.type == type).toList(),
+            orElse: () => [],
+          );
+    });
 
-  return transactionsAsync.maybeWhen(
-    data: (transactions) {
-      return transactions
-          .where((transaction) => transaction.type == .income)
-          .fold(0, (sum, transaction) => sum + transaction.amount);
-    },
-    orElse: () => 0,
-  );
+final totalIncomeProvider = Provider<double>((ref) {
+  return _sumAmounts(ref.watch(transactionsByTypeProvider(.income)));
 });
 
 final totalExpenseProvider = Provider<double>((ref) {
-  final transactionsAsync = ref.watch(transactionsProvider);
-
-  return transactionsAsync.maybeWhen(
-    data: (transactions) {
-      return transactions
-          .where((transaction) => transaction.type == .expense)
-          .fold(0, (sum, transaction) => sum + transaction.amount);
-    },
-    orElse: () => 0,
-  );
+  return _sumAmounts(ref.watch(transactionsByTypeProvider(.expense)));
 });
 
 final balanceProvider = Provider<double>((ref) {
-  final income = ref.watch(totalIncomeProvider);
-
-  final expense = ref.watch(totalExpenseProvider);
-
-  return income - expense;
+  return ref.watch(totalIncomeProvider) - ref.watch(totalExpenseProvider);
 });
+
+double _sumAmounts(List<TransactionModel> transactions) {
+  return transactions.fold(0, (sum, t) => sum + t.amount);
+}

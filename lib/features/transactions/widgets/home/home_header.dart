@@ -15,6 +15,7 @@ class HomeHeader extends StatelessWidget {
         Expanded(
           child: Column(
             crossAxisAlignment: .start,
+            spacing: screenWidth * 0.01,
             children: [
               Text(
                 'Welcome',
@@ -23,7 +24,6 @@ class HomeHeader extends StatelessWidget {
                   fontSize: screenWidth * 0.035,
                 ),
               ),
-              SizedBox(height: screenWidth * 0.01),
               Text(
                 'Mariya',
                 style: .new(fontSize: screenWidth * 0.06, fontWeight: .w700),

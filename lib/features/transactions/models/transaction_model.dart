@@ -54,17 +54,18 @@ class TransactionModel {
     };
   }
 
-  factory TransactionModel.fromJson(Map<String, dynamic> json, String documentId) {
+  factory TransactionModel.fromJson(
+    Map<String, dynamic> json,
+    String documentId,
+  ) {
     return TransactionModel(
       id: documentId,
       title: json[TransactionConstants.title] as String,
       amount: (json[TransactionConstants.amount] as num).toDouble(),
-      category: ExpenseCategory.values.firstWhere(
+      category: .values.firstWhere(
         (category) => category.name == json['category'],
       ),
-      type: TransactionType.values.firstWhere(
-        (type) => type.name == json['type'],
-      ),
+      type: .values.firstWhere((type) => type.name == json['type']),
       date: (json[TransactionConstants.date] as Timestamp).toDate(),
       createdAt: (json[TransactionConstants.createdAt] as Timestamp).toDate(),
     );

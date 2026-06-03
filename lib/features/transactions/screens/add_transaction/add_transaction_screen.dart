@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/utils/screen_utils.dart';
 import '../../../../core/validators/app_validators.dart';
+import '../../../../core/widgets/app_loading_indicator.dart';
 import '../../../../core/widgets/app_snack_bar.dart';
 import '../../models/expense_category.dart';
 import '../../models/transaction_model.dart';
@@ -34,6 +37,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   TransactionType _selectedType = .expense;
   ExpenseCategory _selectedCategory = .food;
   DateTime _selectedDate = .now();
+
+  ExpenseCategory get _effectiveCategory =>
+      _selectedType == .income ? .income : _selectedCategory;
 
   bool _isSaving = false;
 
@@ -76,51 +82,43 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     setState(() => _selectedDate = pickedDate);
   }
 
+  TransactionModel _buildTransaction() {
+    return TransactionModel(
+      id: widget._transaction?.id ?? '',
+      title: _titleController.text.trim(),
+      amount: double.parse(_amountController.text.trim()),
+      type: _selectedType,
+      category: _effectiveCategory,
+      date: _selectedDate,
+      createdAt: widget._transaction?.createdAt ?? DateTime.now(),
+    );
+  }
+
+  Future<void> _persist(TransactionModel transaction) async {
+    final service = ref.read(transactionServiceProvider);
+    final operation = _isEditing
+        ? service.updateTransaction(transaction)
+        : service.addTransaction(transaction);
+
+    await operation.timeout(const .new(seconds: 2), onTimeout: () {});
+  }
+
   Future<void> _saveTransaction() async {
     if (_isSaving) return;
 
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSaving = true);
+
     try {
-      final transactionService = ref.read(transactionServiceProvider);
-
-      final isValid = _formKey.currentState!.validate();
-
-      if (!isValid) return;
-
-      setState(() => _isSaving = true);
-
-      final amount = double.tryParse(_amountController.text.trim());
-
-      if (amount == null || amount <= 0) {
-        setState(() => _isSaving = false);
-        return;
-      }
-
-      final title = _titleController.text.trim();
-
-      final transaction = TransactionModel(
-        id: widget._transaction?.id ?? '',
-        title: title,
-        amount: amount,
-        type: _selectedType,
-        category: _selectedType == .income ? .income : _selectedCategory,
-        date: _selectedDate,
-        createdAt: widget._transaction?.createdAt ?? DateTime.now(),
-      );
-
-      if (_isEditing) {
-        await transactionService.updateTransaction(transaction);
-      } else {
-        await transactionService.addTransaction(transaction);
-      }
+      await _persist(_buildTransaction());
 
       if (!mounted) return;
 
       AppSnackBar.show(
         context,
         isError: false,
-        message: _isEditing
-            ? 'Transaction updated successfully.'
-            : 'Transaction added successfully.',
+        message: _isEditing ? 'changes saved.' : 'Transaction saved.',
       );
 
       Navigator.of(context).pop();
@@ -133,9 +131,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         message: 'Something went wrong. Please try again.',
       );
     } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -280,13 +276,21 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                         borderRadius: .circular(screenWidth * 0.03),
                       ),
                     ),
-                    child: Text(
-                      _isEditing ? 'Update Transaction' : 'Save Transaction',
-                      style: TextStyle(
-                        fontSize: screenWidth * 0.045,
-                        fontWeight: .bold,
-                      ),
-                    ),
+                    child: _isSaving
+                        ? AppLoadingIndicator(
+                            size: screenWidth * 0.049,
+                            strokeWidth: 2,
+                            color: colorScheme.primary,
+                          )
+                        : Text(
+                            _isEditing
+                                ? 'Update Transaction'
+                                : 'Save Transaction',
+                            style: .new(
+                              fontSize: screenWidth * 0.045,
+                              fontWeight: .bold,
+                            ),
+                          ),
                   ),
                 ),
               ],

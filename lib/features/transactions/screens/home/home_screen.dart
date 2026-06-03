@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/screen_utils.dart';
 import '../../widgets/home/hero_balance_card.dart';
@@ -7,11 +6,11 @@ import '../../widgets/home/home_header.dart';
 import '../../widgets/home/recent_transactions.dart';
 import '../../widgets/home/recent_transactions_header.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final screenWidth = ScreenUtils.width(context);
 
     return Scaffold(

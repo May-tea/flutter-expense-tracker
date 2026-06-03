@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -61,7 +63,7 @@ class RecentTransactions extends ConsumerWidget {
               key: ValueKey(transaction.id),
               direction: .endToStart,
               onDismissed: (_) async {
-                await transactionService.deleteTransaction(transaction.id);
+                unawaited(transactionService.deleteTransaction(transaction.id));
 
                 if (!context.mounted) return;
 
@@ -73,7 +75,9 @@ class RecentTransactions extends ConsumerWidget {
                   onAction: () async {
                     ScaffoldMessenger.of(context).clearSnackBars();
 
-                    await transactionService.restoreTransaction(transaction);
+                    unawaited(
+                      transactionService.restoreTransaction(transaction),
+                    );
                   },
                 );
               },

@@ -13,49 +13,55 @@ class TransactionService {
   final FirebaseFirestore _firestore = .instance;
   final FirebaseAuth _firebase = .instance;
 
-  CollectionReference<Map<String, dynamic>> get _transactionsCollection {
+  User get _currentUser {
     final user = _firebase.currentUser;
 
     if (user == null) {
       throw FirebaseAuthException(code: TransactionConstants.userNotFound);
     }
 
+    return user;
+  }
+
+  CollectionReference<Map<String, dynamic>> get _transactionsCollection {
     return _firestore
         .collection(FirebaseCollections.users)
-        .doc(user.uid)
+        .doc(_currentUser.uid)
         .collection(FirebaseCollections.transactions);
   }
 
-  Future<void> addTransaction(TransactionModel transaction) async {
+  Future<void> addTransaction(TransactionModel transaction) {
     final transactionDoc = _transactionsCollection.doc();
 
     final transactionWithId = transaction.copyWith(id: transactionDoc.id);
 
-    await transactionDoc.set(transactionWithId.toJson());
+    return transactionDoc.set(transactionWithId.toJson());
   }
 
   Stream<List<TransactionModel>> getTransactions() {
     return _transactionsCollection
-        .orderBy('date', descending: true)
+        .orderBy(TransactionConstants.date, descending: true)
         .snapshots()
-        .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            return TransactionModel.fromJson(doc.data(), doc.id);
-          }).toList();
-        });
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => TransactionModel.fromJson(doc.data(), doc.id))
+              .toList(),
+        );
   }
 
-  Future<void> deleteTransaction(String transactionId) async {
-    await _transactionsCollection.doc(transactionId).delete();
+  Future<void> deleteTransaction(String transactionId) {
+    return _transactionsCollection.doc(transactionId).delete();
   }
 
-  Future<void> updateTransaction(TransactionModel transaction) async {
-    await _transactionsCollection
+  Future<void> updateTransaction(TransactionModel transaction) {
+    return _transactionsCollection
         .doc(transaction.id)
         .update(transaction.toJson());
   }
 
-  Future<void> restoreTransaction(TransactionModel transaction) async {
-    await _transactionsCollection.doc(transaction.id).set(transaction.toJson());
+  Future<void> restoreTransaction(TransactionModel transaction) {
+    return _transactionsCollection
+        .doc(transaction.id)
+        .set(transaction.toJson());
   }
 }
