@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../expenses/screens/home_screen.dart';
+import '../../navigation/screens/main_screen.dart';
 import '../../splash/splash_screen.dart';
 import '../providers/auth_provider.dart';
 import 'auth_screen.dart';
@@ -26,7 +26,7 @@ class AuthGate extends ConsumerWidget {
           return VerifyEmail(email: user.email ?? '');
         }
 
-        return const HomeScreen();
+        return const MainScreen();
       },
     );
   }

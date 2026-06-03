@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_input_decoration.dart';
+import 'auth_input_decoration.dart';
 
-class AppTextFormField extends StatefulWidget {
-  const AppTextFormField({
+class AuthTextFormField extends StatefulWidget {
+  const AuthTextFormField({
     super.key,
     required this.label,
     required this.controller,
@@ -23,10 +23,10 @@ class AppTextFormField extends StatefulWidget {
   final String? Function(String?)? validator;
 
   @override
-  State<AppTextFormField> createState() => _AppTextFormFieldState();
+  State<AuthTextFormField> createState() => _AuthTextFormFieldState();
 }
 
-class _AppTextFormFieldState extends State<AppTextFormField> {
+class _AuthTextFormFieldState extends State<AuthTextFormField> {
   bool _obscureText = true;
 
   @override
@@ -40,7 +40,7 @@ class _AppTextFormFieldState extends State<AppTextFormField> {
       keyboardType: widget.keyboardType,
       enableSuggestions: false,
       obscureText: widget.isPasswordFormField ? _obscureText : false,
-      decoration: AppInputDecoration.build(
+      decoration: AuthInputDecoration.build(
         context,
         label: widget.label,
         suffixIcon: widget.isPasswordFormField

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../utils/screen_utils.dart';
+import '../../../core/utils/screen_utils.dart';
 
-abstract final class AppInputDecoration {
+abstract final class AuthInputDecoration {
   static InputDecoration build(
     BuildContext context, {
     required String label,

@@ -30,4 +30,22 @@ abstract final class AppValidators {
 
     return null;
   }
+
+  static String? amount(String? value) {
+    final amount = double.tryParse(value?.trim() ?? '');
+
+    if (amount == null || amount <= 0) {
+      return 'Enter a valid amount';
+    }
+
+    return null;
+  }
+
+  static String? title(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Enter a title';
+    }
+
+    return null;
+  }
 }

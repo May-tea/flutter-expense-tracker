@@ -10,7 +10,7 @@ import '../../../core/constants/auth_constants.dart';
 import '../../../core/validators/app_validators.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_snack_bar.dart';
-import '../../../core/widgets/app_text_form_field.dart';
+import '../widgets/auth_text_form_field.dart';
 import '../services/auth_service.dart';
 import '../utils/auth_error_mapper.dart';
 
@@ -245,7 +245,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   child: Column(
                     spacing: screenWidth * 0.058,
                     children: [
-                      AppTextFormField(
+                      AuthTextFormField(
                         label: 'Email',
                         controller: _emailController,
                         keyboardType: .emailAddress,
@@ -257,7 +257,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         curve: Curves.easeOut,
                         child: _isLogin
                             ? const SizedBox()
-                            : AppTextFormField(
+                            : AuthTextFormField(
                                 label: 'Username',
                                 controller: _usernameController,
                                 keyboardType: .name,
@@ -266,7 +266,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 validator: AppValidators.username,
                               ),
                       ),
-                      AppTextFormField(
+                      AuthTextFormField(
                         label: 'Password',
                         controller: _passwordController,
                         isPasswordFormField: true,

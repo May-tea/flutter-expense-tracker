@@ -4,67 +4,74 @@ enum ExpenseCategory {
   food,
   transport,
   shopping,
-  entertainment,
+  leisure,
   bills,
   health,
   travel,
   other,
+  income,
 }
 
 extension ExpenseCategoryExtension on ExpenseCategory {
   String get label {
     switch (this) {
-      case ExpenseCategory.food:
+      case .food:
         return 'Food';
 
-      case ExpenseCategory.transport:
+      case .transport:
         return 'Transport';
 
-      case ExpenseCategory.shopping:
+      case .shopping:
         return 'Shopping';
 
-      case ExpenseCategory.entertainment:
-        return 'Entertainment';
+      case .leisure:
+        return 'Leisure';
 
-      case ExpenseCategory.bills:
+      case .bills:
         return 'Bills';
 
-      case ExpenseCategory.health:
+      case .health:
         return 'Health';
 
-      case ExpenseCategory.travel:
+      case .travel:
         return 'Travel';
 
-      case ExpenseCategory.other:
+      case .other:
         return 'Other';
+
+      case .income:
+        return 'Income';
     }
   }
 
   IconData get icon {
     switch (this) {
-      case ExpenseCategory.food:
+      case .food:
         return Icons.restaurant;
 
-      case ExpenseCategory.transport:
+      case .transport:
         return Icons.directions_car;
 
-      case ExpenseCategory.shopping:
+      case .shopping:
         return Icons.shopping_bag;
 
-      case ExpenseCategory.entertainment:
+      case .leisure:
         return Icons.movie;
 
-      case ExpenseCategory.bills:
+      case .bills:
         return Icons.receipt_long;
 
-      case ExpenseCategory.health:
+      case .health:
         return Icons.favorite;
 
-      case ExpenseCategory.travel:
+      case .travel:
         return Icons.flight;
 
-      case ExpenseCategory.other:
+      case .other:
         return Icons.category;
+
+      case .income:
+        return Icons.payment_rounded;
     }
   }
 }
