@@ -1,15 +1,15 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/utils/screen_utils.dart';
-import '../../../../core/widgets/app_snack_bar.dart';
-import '../../providers/transaction_provider.dart';
-import 'transaction_tile.dart';
+import '../../../core/utils/screen_utils.dart';
+import '../../../core/widgets/app_snack_bar.dart';
+import '../providers/transaction_provider.dart';
+import 'home/transaction_tile.dart';
 
-class RecentTransactions extends ConsumerWidget {
-  const RecentTransactions({super.key});
+class TransactionsList extends ConsumerWidget {
+  const TransactionsList({super.key, required this._isAllTransactions});
+
+  final bool _isAllTransactions;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,8 +53,15 @@ class RecentTransactions extends ConsumerWidget {
         }
 
         return ListView.separated(
-          padding: .only(top: screenWidth * 0.019, bottom: screenWidth * 0.058),
-          itemCount: transactions.length,
+          padding: .only(
+            top: screenWidth * 0.019,
+            bottom: screenWidth * 0.058,
+            left: _isAllTransactions ? screenWidth * 0.04 : 0,
+            right: _isAllTransactions ? screenWidth * 0.04 : 0,
+          ),
+          itemCount: _isAllTransactions
+              ? transactions.length
+              : transactions.length.clamp(0, 3),
           separatorBuilder: (_, _) => SizedBox(height: screenWidth * 0.03),
           itemBuilder: (ctx, index) {
             final transaction = transactions[index];
@@ -63,7 +70,9 @@ class RecentTransactions extends ConsumerWidget {
               key: ValueKey(transaction.id),
               direction: .endToStart,
               onDismissed: (_) async {
-                unawaited(transactionService.deleteTransaction(transaction.id));
+                await transactionService
+                    .deleteTransaction(transaction.id)
+                    .timeout(const .new(seconds: 2), onTimeout: () {});
 
                 if (!context.mounted) return;
 
@@ -75,9 +84,9 @@ class RecentTransactions extends ConsumerWidget {
                   onAction: () async {
                     ScaffoldMessenger.of(context).clearSnackBars();
 
-                    unawaited(
-                      transactionService.restoreTransaction(transaction),
-                    );
+                    transactionService
+                        .restoreTransaction(transaction)
+                        .timeout(const .new(seconds: 2), onTimeout: () {});
                   },
                 );
               },

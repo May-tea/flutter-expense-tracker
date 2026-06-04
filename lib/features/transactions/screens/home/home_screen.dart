@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/utils/screen_utils.dart';
 import '../../widgets/home/hero_balance_card.dart';
 import '../../widgets/home/home_header.dart';
-import '../../widgets/home/recent_transactions.dart';
 import '../../widgets/home/recent_transactions_header.dart';
+import '../../widgets/transactions_list.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -23,7 +23,7 @@ class HomeScreen extends StatelessWidget {
               HomeHeader(),
               HeroBalanceCard(),
               RecentTransactionsHeader(),
-              Expanded(child: RecentTransactions()),
+              Expanded(child: TransactionsList(isAllTransactions: false)),
             ],
           ),
         ),

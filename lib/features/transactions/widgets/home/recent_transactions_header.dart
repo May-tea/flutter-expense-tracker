@@ -8,7 +8,7 @@ class RecentTransactionsHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = ScreenUtils.width(context);
-    final colorScheme = Theme.of(context).colorScheme;
+    // final colorScheme = Theme.of(context).colorScheme;
 
     return Row(
       children: [
@@ -16,14 +16,14 @@ class RecentTransactionsHeader extends StatelessWidget {
           'Recent Transactions',
           style: .new(fontSize: screenWidth * 0.05, fontWeight: .w700),
         ),
-        const Spacer(),
-        TextButton(
-          onPressed: () {},
-          child: Text(
-            'See All',
-            style: .new(color: colorScheme.primary, fontWeight: .bold),
-          ),
-        ),
+        // const Spacer(),
+        // TextButton(
+        //   onPressed: () {},
+        //   child: Text(
+        //     'See All',
+        //     style: .new(color: colorScheme.primary, fontWeight: .bold),
+        //   ),
+        // ),
       ],
     );
   }
