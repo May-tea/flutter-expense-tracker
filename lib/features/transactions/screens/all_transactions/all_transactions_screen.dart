@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/utils/screen_utils.dart';
 import '../../widgets/transactions_list.dart';
 
 class AllTransactionsScreen extends StatelessWidget {
@@ -8,15 +7,8 @@ class AllTransactionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = ScreenUtils.width(context);
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'All Transactions',
-          style: .new(fontSize: screenWidth * 0.05, fontWeight: .bold),
-        ),
-      ),
+      appBar: AppBar(title: const Text('All Transactions')),
       body: const TransactionsList(isAllTransactions: true),
     );
   }

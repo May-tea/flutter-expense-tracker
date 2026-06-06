@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/utils/screen_utils.dart';
-import '../../models/expense_category.dart';
-import '../../models/transaction_model.dart';
-import '../../screens/add_transaction/add_transaction_screen.dart';
-import '../../utils/category_utils.dart';
+import '../../../core/utils/screen_utils.dart';
+import '../models/expense_category.dart';
+import '../models/transaction_model.dart';
+import '../screens/add_transaction/add_transaction_screen.dart';
+import '../utils/category_utils.dart';
 
 class TransactionTile extends StatelessWidget {
   const TransactionTile({super.key, required this.transaction});

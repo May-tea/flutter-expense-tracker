@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/screen_utils.dart';
 import '../../../core/widgets/app_snack_bar.dart';
 import '../providers/transaction_provider.dart';
-import 'home/transaction_tile.dart';
+import 'transaction_tile.dart';
 
 class TransactionsList extends ConsumerWidget {
   const TransactionsList({super.key, required this._isAllTransactions});

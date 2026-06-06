@@ -13,6 +13,7 @@ import '../../models/transaction_model.dart';
 import '../../models/transaction_type.dart';
 import '../../providers/transaction_provider.dart';
 import '../../widgets/add_transaction/category_grid.dart';
+import '../../widgets/add_transaction/form_label.dart';
 import '../../widgets/add_transaction/input_card.dart';
 import '../../widgets/add_transaction/transaction_type_chip.dart';
 
@@ -118,7 +119,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       AppSnackBar.show(
         context,
         isError: false,
-        message: _isEditing ? 'changes saved.' : 'Transaction saved.',
+        message: _isEditing ? 'Transaction updated.' : 'Transaction saved.',
       );
 
       Navigator.of(context).pop();
@@ -156,7 +157,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               crossAxisAlignment: .start,
               spacing: screenWidth * 0.04,
               children: [
-                const _FormLabel(label: 'Amount'),
+                const FormLabel(label: 'Amount'),
                 InputCard(
                   child: TextFormField(
                     key: const ValueKey('amount'),
@@ -186,7 +187,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     validator: AppValidators.amount,
                   ),
                 ),
-                const _FormLabel(label: 'Title'),
+                const FormLabel(label: 'Title'),
                 InputCard(
                   child: TextFormField(
                     key: const ValueKey('title'),
@@ -298,22 +299,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _FormLabel extends StatelessWidget {
-  const _FormLabel({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = ScreenUtils.width(context);
-
-    return Text(
-      label,
-      style: .new(fontSize: screenWidth * 0.05, fontWeight: .w500),
     );
   }
 }
