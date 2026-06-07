@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/settings_service.dart';
+import 'settings_service_provider.dart';
 
 class ThemeModeNotifier extends Notifier<ThemeMode> {
   SettingsService get _service => ref.read(settingsServiceProvider);
@@ -26,8 +27,4 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
 
 final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(
   ThemeModeNotifier.new,
-);
-
-final settingsServiceProvider = Provider<SettingsService>(
-  (ref) => SettingsService(),
 );

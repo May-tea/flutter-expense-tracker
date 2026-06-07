@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/constants/app_constants.dart';
+import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/screens/auth_gate.dart';
 import 'features/settings/providers/theme_provider.dart';
@@ -15,6 +16,8 @@ Future<void> main() async {
   await SystemChrome.setPreferredOrientations([.portraitUp]);
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await NotificationService().init();
 
   runApp(const ProviderScope(child: App()));
 }

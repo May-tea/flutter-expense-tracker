@@ -15,7 +15,7 @@ class SettingsScreen extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     final themeModeNotifier = ref.read(themeModeProvider.notifier);
 
-    final notificationsEnabled = ref.watch(notificationsProvider);
+    final notifications = ref.watch(notificationsProvider);
     final notificationsNotifier = ref.read(notificationsProvider.notifier);
 
     final screenWidth = ScreenUtils.width(context);
@@ -43,9 +43,30 @@ class SettingsScreen extends ConsumerWidget {
           SwitchListTile(
             secondary: const Icon(Icons.notifications_outlined),
             title: const Text('Enable Notifications'),
-            value: notificationsEnabled,
+            value: notifications.enabled,
             onChanged: notificationsNotifier.setEnabled,
           ),
+          if (notifications.enabled)
+            ListTile(
+              leading: const Icon(Icons.access_time_outlined),
+              title: const Text('Reminder Time'),
+              subtitle: Text(
+                notifications.reminderTime?.format(context) ?? '21:00',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () async {
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime:
+                      notifications.reminderTime ??
+                      const TimeOfDay(hour: 21, minute: 0),
+                );
+
+                if (picked != null) {
+                  notificationsNotifier.setReminderTime(picked);
+                }
+              },
+            ),
 
           const SectionHeader(title: 'Account'),
           ListTile(
