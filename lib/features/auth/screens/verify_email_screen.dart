@@ -70,7 +70,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
         AppSnackBar.show(
           context,
           isError: false,
-          message: 'Email verified successfully',
+          message: 'Logged in successfully.',
         );
 
         await _userService.markUserAsVerified();

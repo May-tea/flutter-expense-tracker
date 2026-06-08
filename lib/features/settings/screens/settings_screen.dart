@@ -6,6 +6,7 @@ import '../../../core/utils/screen_utils.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/notifications_provider.dart';
 import '../providers/theme_provider.dart';
+import '../widgets/delete_account_dialog.dart';
 import '../widgets/profile_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/theme_picker_sheet.dart';
@@ -101,6 +102,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onTap: () async => await _showLogoutDialog(context, ref),
           ),
 
+          ListTile(
+            leading: Icon(
+              Icons.delete_forever_outlined,
+              color: colorScheme.error,
+            ),
+            title: Text(
+              'Delete Account',
+              style: .new(color: colorScheme.error),
+            ),
+            onTap: () => _showDeleteAccountDialog(context, ref),
+          ),
+
           const SectionHeader(title: 'About'),
           ListTile(
             leading: const Icon(Icons.info_outline),
@@ -111,6 +124,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
   }
+}
+
+void _showDeleteAccountDialog(BuildContext context, WidgetRef ref) {
+  showDialog(
+    context: context,
+    builder: (_) => DeleteAccountDialog(ref: ref),
+  );
 }
 
 Future<void> _showLogoutDialog(BuildContext context, WidgetRef ref) async {

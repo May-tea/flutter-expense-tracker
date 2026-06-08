@@ -96,4 +96,26 @@ class AuthService {
 
     await _userCollection.doc(user.uid).update({'username': name});
   }
+
+  Future<void> reauthenticate({required String password}) async {
+    final user = _firebase.currentUser;
+
+    if (user == null || user.email == null) return;
+
+    final credential = EmailAuthProvider.credential(
+      email: user.email!,
+      password: password,
+    );
+
+    await user.reauthenticateWithCredential(credential);
+  }
+
+  Future<void> deleteAccount() async {
+    final user = _firebase.currentUser;
+
+    if (user == null) return;
+
+    await _userCollection.doc(user.uid).delete();
+    await user.delete();
+  }
 }
