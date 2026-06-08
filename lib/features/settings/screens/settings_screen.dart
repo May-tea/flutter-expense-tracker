@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/utils/screen_utils.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -9,11 +10,31 @@ import '../widgets/profile_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/theme_picker_sheet.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  String _version = '';
+
+  @override
+  void initState() {
+    super.initState();
+
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    final info = await PackageInfo.fromPlatform();
+
+    if (mounted) setState(() => _version = info.version);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
     final themeModeNotifier = ref.read(themeModeProvider.notifier);
 
@@ -78,6 +99,13 @@ class SettingsScreen extends ConsumerWidget {
             leading: Icon(Icons.logout, color: colorScheme.error),
             title: Text('Log out', style: .new(color: colorScheme.error)),
             onTap: () async => await _showLogoutDialog(context, ref),
+          ),
+
+          const SectionHeader(title: 'About'),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: const Text('Version'),
+            trailing: Text(_version.isEmpty ? '...' : _version),
           ),
         ],
       ),

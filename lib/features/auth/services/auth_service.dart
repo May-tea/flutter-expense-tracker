@@ -87,6 +87,13 @@ class AuthService {
   }
 
   Future<void> updateDisplayName(String name) async {
-    await _firebase.currentUser?.updateDisplayName(name);
+    final user = _firebase.currentUser;
+
+    if (user == null) return;
+
+    await user.updateDisplayName(name);
+    await user.reload();
+
+    await _userCollection.doc(user.uid).update({'username': name});
   }
 }
