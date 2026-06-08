@@ -85,4 +85,8 @@ class AuthService {
 
     return user?.emailVerified ?? false;
   }
+
+  Future<void> updateDisplayName(String name) async {
+    await _firebase.currentUser?.updateDisplayName(name);
+  }
 }

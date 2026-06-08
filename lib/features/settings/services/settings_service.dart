@@ -33,7 +33,7 @@ class SettingsService {
   Future<bool> loadNotificationsEnabled() async {
     final prefs = await SharedPreferences.getInstance();
 
-    return prefs.getBool(_notificationsKey) ?? true;
+    return prefs.getBool(_notificationsKey) ?? false;
   }
 
   Future<void> saveReminderTime(TimeOfDay time) async {

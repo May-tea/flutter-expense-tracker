@@ -1,9 +1,11 @@
-import 'package:app/features/settings/providers/notifications_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/screen_utils.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../providers/notifications_provider.dart';
 import '../providers/theme_provider.dart';
+import '../widgets/profile_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/theme_picker_sheet.dart';
 
@@ -25,6 +27,8 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
+          const ProfileCard(),
+
           const SectionHeader(title: 'Appearance'),
           ListTile(
             leading: const Icon(Icons.palette_outlined),
@@ -51,7 +55,8 @@ class SettingsScreen extends ConsumerWidget {
               leading: const Icon(Icons.access_time_outlined),
               title: const Text('Reminder Time'),
               subtitle: Text(
-                notifications.reminderTime?.format(context) ?? '21:00',
+                notifications.reminderTime?.format(context) ??
+                    const TimeOfDay(hour: 21, minute: 0).format(context),
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () async {
@@ -71,13 +76,39 @@ class SettingsScreen extends ConsumerWidget {
           const SectionHeader(title: 'Account'),
           ListTile(
             leading: Icon(Icons.logout, color: colorScheme.error),
-            title: Text('Logout', style: .new(color: colorScheme.error)),
-            onTap: () {},
+            title: Text('Log out', style: .new(color: colorScheme.error)),
+            onTap: () async => await _showLogoutDialog(context, ref),
           ),
         ],
       ),
     );
   }
+}
+
+Future<void> _showLogoutDialog(BuildContext context, WidgetRef ref) async {
+  final shouldLogout = await showDialog(
+    context: context,
+    builder: (ctx) {
+      return AlertDialog(
+        title: const Text('Log out'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Logout'),
+          ),
+        ],
+      );
+    },
+  );
+
+  if (shouldLogout != true) return;
+
+  await ref.read(authServiceProvider).signOut();
 }
 
 String _themeModeLabel(ThemeMode mode) => switch (mode) {

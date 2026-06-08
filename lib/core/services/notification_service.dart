@@ -5,8 +5,8 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
-  static const _channelId = 'expense_reminder';
-  static const _channelName = 'Expense Reminder';
+  static const _channelId = 'transaction_reminder';
+  static const _channelName = 'Transaction Reminder';
   static const _reminderId = 0;
 
   final _plugin = FlutterLocalNotificationsPlugin();
@@ -23,6 +23,15 @@ class NotificationService {
     );
 
     await _plugin.initialize(settings: const .new(android: androidSettings));
+  }
+
+  Future<bool> isPermissionGranted() async {
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+
+    return await android?.areNotificationsEnabled() ?? false;
   }
 
   Future<bool> requestPermission() async {
@@ -44,8 +53,8 @@ class NotificationService {
         android: AndroidNotificationDetails(
           _channelId,
           _channelName,
-          importance: .defaultImportance,
-          priority: .defaultPriority,
+          importance: .high,
+          priority: .high,
         ),
       ),
       androidScheduleMode: .inexactAllowWhileIdle,

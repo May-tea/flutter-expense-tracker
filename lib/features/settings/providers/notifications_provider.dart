@@ -44,8 +44,13 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
 
   Future<void> setEnabled(bool enabled) async {
     if (enabled) {
-      final granted = await _notifications.requestPermission();
-      if (!granted) return;
+      final alreadyGranted = await _notifications.isPermissionGranted();
+
+      if (!alreadyGranted) {
+        final granted = await _notifications.requestPermission();
+
+        if (!granted) return;
+      }
     }
 
     state = state.copyWith(enabled: enabled);
