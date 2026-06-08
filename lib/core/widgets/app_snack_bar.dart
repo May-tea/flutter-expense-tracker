@@ -29,7 +29,7 @@ abstract final class AppSnackBar {
           borderRadius: .circular(screenWidth * 0.034),
         ),
         backgroundColor: isError ? colorScheme.error : colorScheme.primary,
-        duration: const .new(seconds: 3),
+        duration: const .new(milliseconds: 1500),
         content: Row(
           children: [
             Icon(

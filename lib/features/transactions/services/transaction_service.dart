@@ -64,4 +64,16 @@ class TransactionService {
         .doc(transaction.id)
         .set(transaction.toJson());
   }
+
+  Future<void> deleteAllTransactions() async {
+    final snapshot = await _transactionsCollection.get();
+
+    final batch = _firestore.batch();
+
+    for (final doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    await batch.commit();
+  }
 }

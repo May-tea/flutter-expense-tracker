@@ -3,10 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/utils/screen_utils.dart';
+import '../../../core/widgets/app_snack_bar.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../transactions/providers/transaction_provider.dart';
 import '../providers/notifications_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/delete_account_dialog.dart';
+import '../widgets/delete_transactions_dialog.dart';
 import '../widgets/profile_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/theme_picker_sheet.dart';
@@ -95,6 +98,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               },
             ),
 
+          const SectionHeader(title: 'Danger Zone'),
+          ListTile(
+            leading: Icon(
+              Icons.delete_sweep_outlined,
+              color: colorScheme.error,
+            ),
+            title: Text(
+              'Delete All Transactions',
+              style: .new(color: colorScheme.error),
+            ),
+            onTap: () => _showDeleteTransactionsDialog(context, ref),
+          ),
+
           const SectionHeader(title: 'Account'),
           ListTile(
             leading: Icon(Icons.logout, color: colorScheme.error),
@@ -157,6 +173,29 @@ Future<void> _showLogoutDialog(BuildContext context, WidgetRef ref) async {
   if (shouldLogout != true) return;
 
   await ref.read(authServiceProvider).signOut();
+}
+
+void _showDeleteTransactionsDialog(BuildContext context, WidgetRef ref) {
+  final asyncTransactions = ref.read(transactionsProvider);
+
+  asyncTransactions.maybeWhen(
+    data: (transactions) {
+      if (transactions.isEmpty) {
+        AppSnackBar.show(
+          context,
+          isError: true,
+          message: 'You have no transactions yet.',
+        );
+        return;
+      } else {
+        showDialog(
+          context: context,
+          builder: (_) => DeleteTransactionsDialog(ref: ref),
+        );
+      }
+    },
+    orElse: () {},
+  );
 }
 
 String _themeModeLabel(ThemeMode mode) => switch (mode) {
