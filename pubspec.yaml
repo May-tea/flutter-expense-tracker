@@ -44,6 +44,7 @@ dependencies:
   flutter_timezone: ^5.1.0
   timezone: ^0.11.0
   package_info_plus: ^10.1.0
+  syncfusion_flutter_charts: ^33.2.10
 
 dev_dependencies:
   flutter_test:
@@ -84,17 +85,17 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-      - family: Poppins
-        fonts:
-          - asset: assets/fonts/Poppins-Thin.otf
-          - asset: assets/fonts/Poppins-ExtraLight.otf
-          - asset: assets/fonts/Poppins-Light.otf
-          - asset: assets/fonts/Poppins-Regular.otf
-          - asset: assets/fonts/Poppins-Medium.otf
-          - asset: assets/fonts/Poppins-SemiBold.otf
-          - asset: assets/fonts/Poppins-Bold.otf
-          - asset: assets/fonts/Poppins-ExtraBold.otf
-          - asset: assets/fonts/Poppins-Black.otf
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Thin.otf
+        - asset: assets/fonts/Poppins-ExtraLight.otf
+        - asset: assets/fonts/Poppins-Light.otf
+        - asset: assets/fonts/Poppins-Regular.otf
+        - asset: assets/fonts/Poppins-Medium.otf
+        - asset: assets/fonts/Poppins-SemiBold.otf
+        - asset: assets/fonts/Poppins-Bold.otf
+        - asset: assets/fonts/Poppins-ExtraBold.otf
+        - asset: assets/fonts/Poppins-Black.otf
   #   - family: Trajan Pro
   #     fonts:
   #       - asset: fonts/TrajanPro.ttf

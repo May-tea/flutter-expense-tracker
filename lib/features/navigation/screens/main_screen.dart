@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../settings/screens/settings_screen.dart';
+import '../../stats/screens/stats_screen.dart';
 import '../../transactions/screens/add_transaction/add_transaction_screen.dart';
 import '../../transactions/screens/all_transactions/all_transactions_screen.dart';
 import '../../transactions/screens/home/home_screen.dart';
@@ -18,7 +19,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = const [
     HomeScreen(),
-    Placeholder(),
+    StatsScreen(),
     Placeholder(),
     AllTransactionsScreen(),
     SettingsScreen(),
