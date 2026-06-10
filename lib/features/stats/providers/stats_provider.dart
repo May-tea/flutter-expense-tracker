@@ -16,16 +16,18 @@ final filteredTransactionsProvider = Provider<List<TransactionModel>>((ref) {
   final filter = ref.watch(statsFilterProvider);
 
   DateTime subtractMonths(DateTime date, int months) {
-    final y = date.year;
-    final m = date.month - months;
-    final d = date.day;
+    int month = date.month - months;
+    int year = date.year;
 
-    final newYear = y + (m <= 0 ? (m - 12) ~/ 12 : 0);
-    final newMonth = (m % 12 == 0 ? 12 : m % 12);
-    final lastDayOfMonth = DateTime(newYear, newMonth + 1, 0).day;
-    final newDay = d > lastDayOfMonth ? lastDayOfMonth : d;
+    while (month <= 0) {
+      month += 12;
+      year -= 1;
+    }
 
-    return DateTime(newYear, newMonth, newDay);
+    final lastDay = DateTime(year, month + 1, 0).day;
+    final day = date.day > lastDay ? lastDay : date.day;
+
+    return DateTime(year, month, day);
   }
 
   final now = DateTime.now();
@@ -35,14 +37,14 @@ final filteredTransactionsProvider = Provider<List<TransactionModel>>((ref) {
       transactions
           .where((t) => t.date.year == now.year && t.date.month == now.month)
           .toList(),
-    .threeMonths =>
-      transactions
-          .where((t) => !t.date.isBefore(subtractMonths(now, 3)))
-          .toList(),
-    .sixMonths =>
-      transactions
-          .where((t) => !t.date.isBefore(subtractMonths(now, 6)))
-          .toList(),
+    .threeMonths => transactions.where((t) {
+      final start = subtractMonths(DateTime(now.year, now.month, 1), 3);
+      return !t.date.isBefore(start);
+    }).toList(),
+    .sixMonths => transactions.where((t) {
+      final start = subtractMonths(DateTime(now.year, now.month, 1), 6);
+      return !t.date.isBefore(start);
+    }).toList(),
     .all => transactions,
   };
 });

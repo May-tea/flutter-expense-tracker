@@ -13,6 +13,7 @@ class StatsContainer extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
+      margin: .only(bottom: screenWidth * 0.005),
       padding: .all(screenWidth * 0.029),
       decoration: BoxDecoration(
         color: colorScheme.surface,

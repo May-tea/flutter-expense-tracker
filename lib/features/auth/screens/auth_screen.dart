@@ -228,76 +228,88 @@ class _AuthScreenState extends State<AuthScreen> {
                       style: .new(
                         decoration: .underline,
                         decorationColor: colorScheme.primary,
-                        color: colorScheme.primary,
+                        color: _isAuthenticating
+                            ? colorScheme.outline
+                            : colorScheme.primary,
                         fontWeight: .bold,
                       ),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = _toggleAuthMode,
+                      recognizer: _isAuthenticating
+                          ? null
+                          : (TapGestureRecognizer()..onTap = _toggleAuthMode),
                     ),
                   ],
                 ),
               ),
               Padding(
                 padding: .symmetric(vertical: screenWidth * 0.097),
-                child: Form(
-                  key: _formKey,
-                  autovalidateMode: _autoValidateMode,
-                  child: Column(
-                    spacing: screenWidth * 0.058,
-                    children: [
-                      AuthTextFormField(
-                        label: 'Email',
-                        controller: _emailController,
-                        keyboardType: .emailAddress,
-                        autofillHints: const [AutofillHints.email],
-                        validator: AppValidators.email,
-                      ),
-                      AnimatedSize(
-                        duration: const .new(milliseconds: 300),
-                        curve: Curves.easeOut,
-                        child: _isLogin
-                            ? const SizedBox()
-                            : AuthTextFormField(
-                                label: 'Username',
-                                controller: _usernameController,
-                                keyboardType: .name,
-                                autofillHints: const [AutofillHints.username],
-                                textCapitalization: .sentences,
-                                validator: AppValidators.username,
-                              ),
-                      ),
-                      AuthTextFormField(
-                        label: 'Password',
-                        controller: _passwordController,
-                        isPasswordFormField: true,
-                        autofillHints: const [AutofillHints.password],
-                        validator: AppValidators.password,
-                      ),
-                      if (_isLogin)
-                        Row(
-                          mainAxisAlignment: .end,
-                          children: [
-                            GestureDetector(
-                              onTap:
-                                  (_isAuthenticating ||
-                                      _resetPasswordCooldown > 0)
-                                  ? null
-                                  : _resetPassword,
-                              child: Text(
-                                _resetPasswordCooldown > 0
-                                    ? 'Reset in $_resetPasswordCooldown s'
-                                    : 'Forgot Password?',
-                                style: .new(
-                                  decoration: .underline,
-                                  decorationColor: colorScheme.primary,
-                                  fontWeight: .bold,
-                                  color: colorScheme.primary,
+                child: AnimatedOpacity(
+                  duration: const .new(milliseconds: 200),
+                  opacity: _isAuthenticating ? 0.6 : 1,
+                  child: AbsorbPointer(
+                    absorbing: _isAuthenticating,
+                    child: Form(
+                      key: _formKey,
+                      autovalidateMode: _autoValidateMode,
+                      child: Column(
+                        spacing: screenWidth * 0.058,
+                        children: [
+                          AuthTextFormField(
+                            label: 'Email',
+                            controller: _emailController,
+                            keyboardType: .emailAddress,
+                            autofillHints: const [AutofillHints.email],
+                            validator: AppValidators.email,
+                          ),
+                          AnimatedSize(
+                            duration: const .new(milliseconds: 300),
+                            curve: Curves.easeOut,
+                            child: _isLogin
+                                ? const SizedBox()
+                                : AuthTextFormField(
+                                    label: 'Username',
+                                    controller: _usernameController,
+                                    keyboardType: .name,
+                                    autofillHints: const [
+                                      AutofillHints.username,
+                                    ],
+                                    textCapitalization: .sentences,
+                                    validator: AppValidators.username,
+                                  ),
+                          ),
+                          AuthTextFormField(
+                            label: 'Password',
+                            controller: _passwordController,
+                            isPasswordFormField: true,
+                            autofillHints: const [AutofillHints.password],
+                            validator: AppValidators.password,
+                          ),
+                          if (_isLogin)
+                            Row(
+                              mainAxisAlignment: .end,
+                              children: [
+                                GestureDetector(
+                                  onTap:
+                                      (_isAuthenticating ||
+                                          _resetPasswordCooldown > 0)
+                                      ? null
+                                      : _resetPassword,
+                                  child: Text(
+                                    _resetPasswordCooldown > 0
+                                        ? 'Reset in $_resetPasswordCooldown s'
+                                        : 'Forgot Password?',
+                                    style: .new(
+                                      decoration: .underline,
+                                      decorationColor: colorScheme.primary,
+                                      fontWeight: .bold,
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-                    ],
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),

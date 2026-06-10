@@ -7,7 +7,7 @@ import '../../../core/widgets/app_snack_bar.dart';
 import '../../auth/providers/auth_provider.dart';
 
 class EditUsernameDialog extends StatefulWidget {
-  const EditUsernameDialog({required this.ref, required this.currentName});
+  const EditUsernameDialog({super.key, required this.ref, required this.currentName});
 
   final WidgetRef ref;
   final String currentName;

@@ -56,16 +56,18 @@ class UserService {
     await _userCollection.doc(uid).set(user.toJson());
   }
 
-  Future<UserModel?> getCurrentUserProfile() async {
+  Stream<UserModel?> currentUserProfileStream() {
     final user = _firebase.currentUser;
 
-    if (user == null) return null;
+    if (user == null) {
+      return Stream.value(null);
+    }
 
-    final doc = await _userCollection.doc(user.uid).get();
+    return _userCollection.doc(user.uid).snapshots().map((doc) {
+      if (!doc.exists) return null;
 
-    if (!doc.exists) return null;
-
-    return UserModel.fromJson(doc.data()!);
+      return UserModel.fromJson(doc.data()!);
+    });
   }
 
   Future<void> updateUserProfile({required String username}) async {

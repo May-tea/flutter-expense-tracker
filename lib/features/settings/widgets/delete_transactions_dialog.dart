@@ -59,13 +59,9 @@ class _DeleteTransactionsDialogState
   Future<void> _delete(TransactionService service) async {
     setState(() => _isLoading = true);
 
-
     try {
-      await service.deleteAllTransactions();
-    } catch (_) {
-      setState(() => _isLoading = false);
-      return;
-    }
+      await service.deleteAllTransactions().timeout(const .new(seconds: 2));
+    } catch (_) {}
 
     if (mounted) Navigator.pop(context);
 

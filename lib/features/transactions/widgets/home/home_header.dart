@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/screen_utils.dart';
+import '../../../auth/providers/user_provider.dart';
 
-class HomeHeader extends StatelessWidget {
+class HomeHeader extends ConsumerWidget {
   const HomeHeader({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(currentUserProvider);
+
     final screenWidth = ScreenUtils.width(context);
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -24,9 +28,19 @@ class HomeHeader extends StatelessWidget {
                   fontSize: screenWidth * 0.035,
                 ),
               ),
-              Text(
-                'Mariya',
-                style: .new(fontSize: screenWidth * 0.06, fontWeight: .w700),
+              userAsync.when(
+                data: (user) => Text(
+                  user?.username ?? 'User',
+                  style: .new(fontSize: screenWidth * 0.06, fontWeight: .w700),
+                ),
+                loading: () => Text(
+                  '...',
+                  style: .new(fontSize: screenWidth * 0.06, fontWeight: .w700),
+                ),
+                error: (_, _) => Text(
+                  'User',
+                  style: .new(fontSize: screenWidth * 0.06, fontWeight: .w700),
+                ),
               ),
             ],
           ),
@@ -34,35 +48,18 @@ class HomeHeader extends StatelessWidget {
         Row(
           spacing: screenWidth * 0.04,
           children: [
-            const _HeaderIconButton(icon: Icons.notifications_outlined),
             CircleAvatar(
               radius: screenWidth * 0.06,
-              child: Icon(Icons.person, size: screenWidth * 0.06),
+              child: Text(
+                (userAsync.value?.username.isNotEmpty ?? false)
+                    ? userAsync.value!.username[0].toUpperCase()
+                    : 'U',
+                style: .new(fontSize: screenWidth * 0.045),
+              ),
             ),
           ],
         ),
       ],
-    );
-  }
-}
-
-class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({required this.icon});
-
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = ScreenUtils.width(context);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: .all(screenWidth * 0.03),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        shape: .circle,
-      ),
-      child: Icon(icon),
     );
   }
 }
