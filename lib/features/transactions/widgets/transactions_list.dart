@@ -3,18 +3,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/screen_utils.dart';
 import '../../../core/widgets/app_snack_bar.dart';
+import '../models/transaction_model.dart';
 import '../providers/transaction_provider.dart';
 import 'transaction_tile.dart';
 
 class TransactionsList extends ConsumerWidget {
-  const TransactionsList({super.key, required this._isAllTransactions});
+  const TransactionsList({
+    super.key,
+    required this.isAllTransactions,
+    this.ignoreFilter = false,
+  });
 
-  final bool _isAllTransactions;
+  final bool isAllTransactions;
+  final bool ignoreFilter;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionService = ref.watch(transactionServiceProvider);
     final transactionAsync = ref.watch(transactionsProvider);
+    final filter = ref.watch(transactionFilterProvider);
+
+    final transactionService = ref.watch(transactionServiceProvider);
+
+    final filteredTransactions = ignoreFilter
+        ? transactionAsync.maybeWhen(
+            data: (list) => list,
+            orElse: () => <TransactionModel>[],
+          )
+        : ref.watch(filteredTransactionsProvider);
 
     final screenWidth = ScreenUtils.width(context);
     final colorScheme = Theme.of(context).colorScheme;
@@ -22,20 +37,24 @@ class TransactionsList extends ConsumerWidget {
     return transactionAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text(error.toString())),
-      data: (transactions) {
-        if (transactions.isEmpty) {
+      data: (_) {
+        if (filteredTransactions.isEmpty) {
           return Center(
             child: Column(
               mainAxisSize: .min,
               children: [
                 Icon(
-                  Icons.receipt_long_outlined,
+                  filter.hasActiveFilter
+                      ? Icons.search_off
+                      : Icons.receipt_long_outlined,
                   size: screenWidth * 0.16,
                   color: colorScheme.onSurfaceVariant,
                 ),
                 SizedBox(height: screenWidth * 0.029),
                 Text(
-                  'No transactions yet',
+                  filter.hasActiveFilter
+                      ? 'No matching transactions'
+                      : 'No transactions yet',
                   style: .new(
                     fontSize: screenWidth * 0.044,
                     fontWeight: .w600,
@@ -44,7 +63,9 @@ class TransactionsList extends ConsumerWidget {
                 ),
                 SizedBox(height: screenWidth * 0.01),
                 Text(
-                  'Tap + to add your first transaction',
+                  filter.hasActiveFilter
+                      ? 'Try adjusting your filters'
+                      : 'Tap + to add your first transaction',
                   style: .new(color: colorScheme.onSurfaceVariant),
                 ),
               ],
@@ -52,30 +73,42 @@ class TransactionsList extends ConsumerWidget {
           );
         }
 
+        final itemCount = isAllTransactions
+            ? filteredTransactions.length
+            : filteredTransactions.length.clamp(0, 3);
+
         return ListView.separated(
           padding: .only(
             top: screenWidth * 0.019,
             bottom: screenWidth * 0.058,
-            left: _isAllTransactions ? screenWidth * 0.04 : 0,
-            right: _isAllTransactions ? screenWidth * 0.04 : 0,
+            left: isAllTransactions ? screenWidth * 0.04 : 0,
+            right: isAllTransactions ? screenWidth * 0.04 : 0,
           ),
-          itemCount: _isAllTransactions
-              ? transactions.length
-              : transactions.length.clamp(0, 3),
+          itemCount: itemCount,
           separatorBuilder: (_, _) => SizedBox(height: screenWidth * 0.03),
           itemBuilder: (ctx, index) {
-            final transaction = transactions[index];
+            final transaction = filteredTransactions[index];
 
             return Dismissible(
               key: ValueKey(transaction.id),
               direction: .endToStart,
               onDismissed: (_) async {
-                await transactionService
-                    .deleteTransaction(transaction.id)
-                    .timeout(const .new(seconds: 2), onTimeout: () {});
+                try {
+                  await transactionService
+                      .deleteTransaction(transaction.id)
+                      .timeout(const Duration(seconds: 2));
+                } catch (_) {
+                  if (!context.mounted) return;
+
+                  AppSnackBar.show(
+                    context,
+                    isError: true,
+                    message: 'Failed to delete',
+                  );
+                  return;
+                }
 
                 if (!context.mounted) return;
-
                 AppSnackBar.show(
                   context,
                   isError: true,
@@ -83,7 +116,6 @@ class TransactionsList extends ConsumerWidget {
                   actionLabel: 'UNDO',
                   onAction: () async {
                     ScaffoldMessenger.of(context).clearSnackBars();
-
                     transactionService
                         .restoreTransaction(transaction)
                         .timeout(const .new(seconds: 2), onTimeout: () {});

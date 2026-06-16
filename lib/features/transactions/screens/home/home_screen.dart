@@ -23,7 +23,12 @@ class HomeScreen extends StatelessWidget {
               HomeHeader(),
               HeroBalanceCard(),
               RecentTransactionsHeader(),
-              Expanded(child: TransactionsList(isAllTransactions: false)),
+              Expanded(
+                child: TransactionsList(
+                  isAllTransactions: false,
+                  ignoreFilter: true,
+                ),
+              ),
             ],
           ),
         ),

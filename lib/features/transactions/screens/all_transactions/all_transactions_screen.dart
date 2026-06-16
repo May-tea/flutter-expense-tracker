@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../widgets/transaction_filter_bar.dart';
 import '../../widgets/transactions_list.dart';
 
 class AllTransactionsScreen extends StatelessWidget {
@@ -9,7 +10,12 @@ class AllTransactionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('All Transactions')),
-      body: const TransactionsList(isAllTransactions: true),
+      body: const Column(
+        children: [
+          TransactionFilterBar(),
+          Expanded(child: TransactionsList(isAllTransactions: true)),
+        ],
+      ),
     );
   }
 }
