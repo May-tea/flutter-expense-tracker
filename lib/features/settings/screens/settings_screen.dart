@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../../core/services/export_service.dart';
 import '../../../core/utils/screen_utils.dart';
+import '../../../core/widgets/app_loading_indicator.dart';
 import '../../../core/widgets/app_snack_bar.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../transactions/providers/transaction_provider.dart';
@@ -22,6 +24,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  bool _isExporting = false;
   String _version = '';
 
   @override
@@ -35,6 +38,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final info = await PackageInfo.fromPlatform();
 
     if (mounted) setState(() => _version = info.version);
+  }
+
+  Future<void> _saveTransactions(BuildContext context, WidgetRef ref) async {
+    final asyncTransactions = ref.read(transactionsProvider);
+
+    asyncTransactions.maybeWhen(
+      data: (transactions) async {
+        if (transactions.isEmpty) {
+          AppSnackBar.show(
+            context,
+            isError: true,
+            message: 'You have no transactions to export.',
+          );
+          return;
+        }
+
+        setState(() => _isExporting = true);
+
+        try {
+          final success = await ExportService().saveToDevice(transactions);
+
+          if (context.mounted) {
+            AppSnackBar.show(
+              context,
+              isError: !success,
+              message: success
+                  ? 'Transactions saved successfully'
+                  : 'Failed to save transactions.',
+            );
+          }
+        } finally {
+          if (mounted) setState(() => _isExporting = false);
+        }
+      },
+      orElse: () {},
+    );
   }
 
   @override
@@ -97,6 +136,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 }
               },
             ),
+
+          const SectionHeader(title: 'Data'),
+          ListTile(
+            leading: const Icon(Icons.download_outlined),
+            title: const Text('Export Transactions'),
+            subtitle: const Text('Save as CSV'),
+            trailing: _isExporting
+                ? AppLoadingIndicator(
+                    size: screenWidth * 0.049,
+                    strokeWidth: screenWidth * 0.0049,
+                    color: colorScheme.onSurfaceVariant,
+                  )
+                : const Icon(Icons.chevron_right),
+            onTap: _isExporting ? null : () => _saveTransactions(context, ref),
+          ),
 
           const SectionHeader(title: 'Danger Zone'),
           ListTile(

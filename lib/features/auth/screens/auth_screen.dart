@@ -227,9 +227,11 @@ class _AuthScreenState extends State<AuthScreen> {
                       text: _isLogin ? 'Create now' : AuthConstants.signIn,
                       style: .new(
                         decoration: .underline,
-                        decorationColor: colorScheme.primary,
+                        decorationColor: _isAuthenticating
+                            ? colorScheme.primary.withValues(alpha: 0.6)
+                            : colorScheme.primary,
                         color: _isAuthenticating
-                            ? colorScheme.outline
+                            ? colorScheme.primary.withValues(alpha: 0.6)
                             : colorScheme.primary,
                         fontWeight: .bold,
                       ),

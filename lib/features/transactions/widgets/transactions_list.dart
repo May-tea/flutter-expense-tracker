@@ -93,20 +93,9 @@ class TransactionsList extends ConsumerWidget {
               key: ValueKey(transaction.id),
               direction: .endToStart,
               onDismissed: (_) async {
-                try {
-                  await transactionService
-                      .deleteTransaction(transaction.id)
-                      .timeout(const Duration(seconds: 2));
-                } catch (_) {
-                  if (!context.mounted) return;
-
-                  AppSnackBar.show(
-                    context,
-                    isError: true,
-                    message: 'Failed to delete',
-                  );
-                  return;
-                }
+                await transactionService
+                    .deleteTransaction(transaction.id)
+                    .timeout(const Duration(seconds: 2));
 
                 if (!context.mounted) return;
                 AppSnackBar.show(
