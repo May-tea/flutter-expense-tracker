@@ -137,10 +137,6 @@ flutter run
    * `GoogleService-Info.plist`
 5. Run the application.
 
-## Screenshots
-
-Add application screenshots here.
-
 ## License
 
 This project is intended for educational, learning, and portfolio purposes.
