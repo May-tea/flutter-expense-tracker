@@ -93,12 +93,18 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
     } on FirebaseAuthException catch (e) {
       setState(() {
         _isLoading = false;
-
         _error = switch (e.code) {
-          'wrong-password' => 'Incorrect password',
+          'wrong-password' || 'invalid-credential' => 'Incorrect password',
           'too-many-requests' => 'Too many attempts, try later',
-          _ => 'Something went wrong',
+          'requires-recent-login' => 'Please sign in again and retry',
+          'network-request-failed' => 'No internet connection',
+          _ => 'Something went wrong (${e.code})',
         };
+      });
+    } catch (_) {
+      setState(() {
+        _isLoading = false;
+        _error = 'Unexpected error, please try again';
       });
     }
   }

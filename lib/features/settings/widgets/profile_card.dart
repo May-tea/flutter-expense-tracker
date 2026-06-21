@@ -97,6 +97,7 @@ void _showEditUsernameDialog(
 ) {
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (_) => EditUsernameDialog(ref: ref, currentName: currentName),
   );
 }

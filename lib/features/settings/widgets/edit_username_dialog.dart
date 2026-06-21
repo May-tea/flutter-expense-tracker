@@ -7,7 +7,11 @@ import '../../../core/widgets/app_snack_bar.dart';
 import '../../auth/providers/auth_provider.dart';
 
 class EditUsernameDialog extends StatefulWidget {
-  const EditUsernameDialog({super.key, required this.ref, required this.currentName});
+  const EditUsernameDialog({
+    super.key,
+    required this.ref,
+    required this.currentName,
+  });
 
   final WidgetRef ref;
   final String currentName;
@@ -71,17 +75,34 @@ class _EditUsernameDialogState extends State<EditUsernameDialog> {
 
     setState(() => _isLoading = true);
 
-    final authService = widget.ref.read(authServiceProvider);
-    await authService.updateDisplayName(newName);
+    try {
+      final authService = widget.ref.read(authServiceProvider);
+      await authService.updateDisplayName(newName);
 
-    if (mounted) Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
 
-    widget.ref.invalidate(authStateProvider);
+        AppSnackBar.show(
+          context,
+          isError: false,
+          message: 'Username updated successfully.',
+        );
+      }
 
-    AppSnackBar.show(
-      context,
-      isError: false,
-      message: 'Username updated successfully.',
-    );
+      widget.ref.invalidate(authStateProvider);
+    } catch (_) {
+      if (mounted) {
+        Navigator.pop(context);
+        
+        AppSnackBar.show(
+          context,
+          isError: true,
+          message:
+              'Failed to update username. Please check your internet connection and try again.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 }

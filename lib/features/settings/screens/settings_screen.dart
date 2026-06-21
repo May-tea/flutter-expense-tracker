@@ -199,6 +199,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 void _showDeleteAccountDialog(BuildContext context, WidgetRef ref) {
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (_) => DeleteAccountDialog(ref: ref),
   );
 }
@@ -244,6 +245,7 @@ void _showDeleteTransactionsDialog(BuildContext context, WidgetRef ref) {
       } else {
         showDialog(
           context: context,
+          barrierDismissible: false,
           builder: (_) => DeleteTransactionsDialog(ref: ref),
         );
       }
