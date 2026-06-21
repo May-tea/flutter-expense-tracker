@@ -93,21 +93,33 @@ class TransactionsList extends ConsumerWidget {
               key: ValueKey(transaction.id),
               direction: .endToStart,
               onDismissed: (_) async {
-                await transactionService
-                    .deleteTransaction(transaction.id)
-                    .timeout(const Duration(seconds: 2));
+                final deleteTransaction = transaction;
+                bool deleteSuccess = true;
+
+                try {
+                  await transactionService
+                      .deleteTransaction(transaction.id)
+                      .timeout(const .new(milliseconds: 500));
+                } catch (_) {
+                  deleteSuccess = false;
+                }
 
                 if (!context.mounted) return;
                 AppSnackBar.show(
                   context,
-                  isError: true,
-                  message: 'Transaction deleted!',
+                  isError: !deleteSuccess,
+                  message: deleteSuccess
+                      ? 'Transaction deleted!'
+                      : 'Deleted locally! (syncs when online)',
                   actionLabel: 'UNDO',
                   onAction: () async {
                     ScaffoldMessenger.of(context).clearSnackBars();
                     transactionService
-                        .restoreTransaction(transaction)
-                        .timeout(const .new(seconds: 2), onTimeout: () {});
+                        .restoreTransaction(deleteTransaction)
+                        .timeout(
+                          const .new(milliseconds: 500),
+                          onTimeout: () {},
+                        );
                   },
                 );
               },

@@ -95,13 +95,21 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     );
   }
 
-  Future<void> _persist(TransactionModel transaction) async {
+  Future<bool> _persist(TransactionModel transaction) async {
     final service = ref.read(transactionServiceProvider);
     final operation = _isEditing
         ? service.updateTransaction(transaction)
         : service.addTransaction(transaction);
 
-    await operation.timeout(const .new(seconds: 2), onTimeout: () {});
+    bool changedSuccessfully = true;
+
+    try {
+      await operation.timeout(const .new(milliseconds: 500));
+    } catch (_) {
+      changedSuccessfully = false;
+    }
+
+    return changedSuccessfully;
   }
 
   Future<void> _saveTransaction() async {
@@ -112,14 +120,20 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     setState(() => _isSaving = true);
 
     try {
-      await _persist(_buildTransaction());
+      final changedSuccessfully = await _persist(_buildTransaction());
 
       if (!mounted) return;
 
       AppSnackBar.show(
         context,
-        isError: false,
-        message: _isEditing ? 'Transaction updated.' : 'Transaction saved.',
+        isError: !changedSuccessfully,
+        message: _isEditing && changedSuccessfully
+            ? 'Transaction updated.'
+            : _isEditing && !changedSuccessfully
+            ? 'Updated locally! (syncs when online).'
+            : changedSuccessfully
+            ? 'Transaction saved.'
+            : 'Saved locally! (syncs when online).',
       );
 
       Navigator.of(context).pop();
