@@ -155,160 +155,163 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final screenWidth = ScreenUtils.width(context);
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _isEditing ? 'Edit Transaction' : 'Add Transaction',
-          style: .new(fontSize: screenWidth * 0.05, fontWeight: .bold),
+    return PopScope(
+      canPop: !_isSaving,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            _isEditing ? 'Edit Transaction' : 'Add Transaction',
+            style: .new(fontSize: screenWidth * 0.05, fontWeight: .bold),
+          ),
         ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: .all(screenWidth * 0.06),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: .start,
-              spacing: screenWidth * 0.04,
-              children: [
-                const FormLabel(label: 'Amount'),
-                InputCard(
-                  child: TextFormField(
-                    key: const ValueKey('amount'),
-                    controller: _amountController,
-                    keyboardType: const .numberWithOptions(decimal: true),
-                    autovalidateMode: .onUserInteraction,
-                    textAlign: .center,
-                    style: .new(
-                      fontSize: screenWidth * 0.13,
-                      fontWeight: .w700,
-                      color: colorScheme.onSurface,
-                    ),
-                    decoration: .new(
-                      border: .none,
-                      hintText: '0.00',
-                      hintStyle: .new(
-                        color: colorScheme.onSurface.withValues(alpha: 0.5),
-                        fontWeight: .w700,
-                      ),
-                      prefixText: '\$ ',
-                      prefixStyle: .new(
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: .all(screenWidth * 0.06),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: .start,
+                spacing: screenWidth * 0.04,
+                children: [
+                  const FormLabel(label: 'Amount'),
+                  InputCard(
+                    child: TextFormField(
+                      key: const ValueKey('amount'),
+                      controller: _amountController,
+                      keyboardType: const .numberWithOptions(decimal: true),
+                      autovalidateMode: .onUserInteraction,
+                      textAlign: .center,
+                      style: .new(
                         fontSize: screenWidth * 0.13,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: .w700,
                         color: colorScheme.onSurface,
                       ),
+                      decoration: .new(
+                        border: .none,
+                        hintText: '0.00',
+                        hintStyle: .new(
+                          color: colorScheme.onSurface.withValues(alpha: 0.5),
+                          fontWeight: .w700,
+                        ),
+                        prefixText: '\$ ',
+                        prefixStyle: .new(
+                          fontSize: screenWidth * 0.13,
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      validator: AppValidators.amount,
                     ),
-                    validator: AppValidators.amount,
                   ),
-                ),
-                const FormLabel(label: 'Title'),
-                InputCard(
-                  child: TextFormField(
-                    key: const ValueKey('title'),
-                    controller: _titleController,
-                    autovalidateMode: .onUserInteraction,
-                    style: .new(
-                      fontSize: screenWidth * 0.05,
-                      fontWeight: .w700,
-                      color: colorScheme.onSurface,
-                    ),
-                    decoration: .new(
-                      border: .none,
-                      hintText: 'What was this for?',
-                      hintStyle: .new(
-                        color: colorScheme.onSurface.withValues(alpha: 0.5),
+                  const FormLabel(label: 'Title'),
+                  InputCard(
+                    child: TextFormField(
+                      key: const ValueKey('title'),
+                      controller: _titleController,
+                      autovalidateMode: .onUserInteraction,
+                      style: .new(
+                        fontSize: screenWidth * 0.05,
                         fontWeight: .w700,
+                        color: colorScheme.onSurface,
                       ),
+                      decoration: .new(
+                        border: .none,
+                        hintText: 'What was this for?',
+                        hintStyle: .new(
+                          color: colorScheme.onSurface.withValues(alpha: 0.5),
+                          fontWeight: .w700,
+                        ),
+                      ),
+                      validator: AppValidators.title,
                     ),
-                    validator: AppValidators.title,
                   ),
-                ),
-                Row(
-                  mainAxisAlignment: .center,
-                  spacing: screenWidth * 0.04,
-                  children: [
-                    TransactionTypeChip(
-                      label: 'Expense',
-                      type: .expense,
-                      selectedType: _selectedType,
-                      onSelected: () {
-                        setState(() => _selectedType = .expense);
-                      },
-                    ),
-                    TransactionTypeChip(
-                      label: 'Income',
-                      type: .income,
-                      selectedType: _selectedType,
-                      onSelected: () {
-                        setState(() => _selectedType = .income);
-                      },
-                    ),
-                  ],
-                ),
-                if (_selectedType == .expense)
-                  CategoryGrid(
-                    selectedCategory: _selectedCategory,
-                    onCategorySelected: (cat) {
-                      setState(() => _selectedCategory = cat);
-                    },
-                  ),
-                InputCard(
-                  child: Row(
-                    mainAxisAlignment: .spaceBetween,
+                  Row(
+                    mainAxisAlignment: .center,
+                    spacing: screenWidth * 0.04,
                     children: [
-                      Row(
-                        spacing: screenWidth * 0.02,
-                        children: [
-                          Icon(
-                            Icons.calendar_today,
-                            color: colorScheme.primary,
-                            size: screenWidth * 0.05,
-                          ),
-                          Text(
-                            DateFormat.yMMMd().format(_selectedDate),
-                            style: .new(
-                              fontSize: screenWidth * 0.04,
-                              fontWeight: .w600,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                        ],
+                      TransactionTypeChip(
+                        label: 'Expense',
+                        type: .expense,
+                        selectedType: _selectedType,
+                        onSelected: () {
+                          setState(() => _selectedType = .expense);
+                        },
                       ),
-                      TextButton(
-                        onPressed: _selectDate,
-                        child: const Text('Select'),
+                      TransactionTypeChip(
+                        label: 'Income',
+                        type: .income,
+                        selectedType: _selectedType,
+                        onSelected: () {
+                          setState(() => _selectedType = .income);
+                        },
                       ),
                     ],
                   ),
-                ),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isSaving ? null : _saveTransaction,
-                    style: ElevatedButton.styleFrom(
-                      padding: .symmetric(vertical: screenWidth * 0.045),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: .circular(screenWidth * 0.03),
-                      ),
+                  if (_selectedType == .expense)
+                    CategoryGrid(
+                      selectedCategory: _selectedCategory,
+                      onCategorySelected: (cat) {
+                        setState(() => _selectedCategory = cat);
+                      },
                     ),
-                    child: _isSaving
-                        ? AppLoadingIndicator(
-                            size: screenWidth * 0.049,
-                            strokeWidth: 2,
-                            color: colorScheme.primary,
-                          )
-                        : Text(
-                            _isEditing
-                                ? 'Update Transaction'
-                                : 'Save Transaction',
-                            style: .new(
-                              fontSize: screenWidth * 0.045,
-                              fontWeight: .bold,
+                  InputCard(
+                    child: Row(
+                      mainAxisAlignment: .spaceBetween,
+                      children: [
+                        Row(
+                          spacing: screenWidth * 0.02,
+                          children: [
+                            Icon(
+                              Icons.calendar_today,
+                              color: colorScheme.primary,
+                              size: screenWidth * 0.05,
                             ),
-                          ),
+                            Text(
+                              DateFormat.yMMMd().format(_selectedDate),
+                              style: .new(
+                                fontSize: screenWidth * 0.04,
+                                fontWeight: .w600,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                          ],
+                        ),
+                        TextButton(
+                          onPressed: _selectDate,
+                          child: const Text('Select'),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isSaving ? null : _saveTransaction,
+                      style: ElevatedButton.styleFrom(
+                        padding: .symmetric(vertical: screenWidth * 0.045),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: .circular(screenWidth * 0.03),
+                        ),
+                      ),
+                      child: _isSaving
+                          ? AppLoadingIndicator(
+                              size: screenWidth * 0.049,
+                              strokeWidth: 2,
+                              color: colorScheme.primary,
+                            )
+                          : Text(
+                              _isEditing
+                                  ? 'Update Transaction'
+                                  : 'Save Transaction',
+                              style: .new(
+                                fontSize: screenWidth * 0.045,
+                                fontWeight: .bold,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
