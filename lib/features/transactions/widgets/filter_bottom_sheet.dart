@@ -115,7 +115,7 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
           screenWidth * 0.039,
           screenWidth * 0.02,
           screenWidth * 0.039,
-          screenWidth * 0.04,
+          MediaQuery.of(context).viewInsets.bottom + screenWidth * 0.04,
         ),
         child: Form(
           key: _formKey,
